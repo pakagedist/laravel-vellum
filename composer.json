@@ -1,0 +1,96 @@
+{
+    "name": "laravel-vellum/laravel-vellum",
+    "description": "Vellum: a unified, driver-agnostic PDF generation layer for Laravel - any source, any engine, one API.",
+    "keywords": [
+        "laravel",
+        "vellum",
+        "pdf",
+        "dompdf",
+        "browsershot",
+        "mpdf",
+        "pdfa",
+        "factur-x",
+        "zugferd"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Vellum Contributors"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "ext-json": "*",
+        "illuminate/console": "^10.0|^11.0|^12.0",
+        "illuminate/filesystem": "^10.0|^11.0|^12.0",
+        "illuminate/http": "^10.0|^11.0|^12.0",
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "illuminate/view": "^10.0|^11.0|^12.0",
+        "psr/log": "^3.0"
+    },
+    "require-dev": {
+        "dompdf/dompdf": "^2.0|^3.0",
+        "larastan/larastan": "^2.9|^3.0",
+        "laravel/pint": "^1.14",
+        "mpdf/mpdf": "^8.1",
+        "nunomaduro/collision": "^8.0",
+        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "phpstan/phpstan": "^2.0",
+        "phpunit/phpunit": "^10.5|^11.0",
+        "setasign/fpdi": "^2.6",
+        "setasign/fpdf": "^1.8",
+        "spatie/browsershot": "^4.0|^5.0",
+        "twig/twig": "^3.8"
+    },
+    "suggest": {
+        "dompdf/dompdf": "Required to use the DOMPDF driver.",
+        "ext-curl": "Required to use the URL source.",
+        "ext-openssl": "Required to sign PDF documents.",
+        "mpdf/mpdf": "Required to use the mPDF driver.",
+        "setasign/fpdi": "Required by the merge post-processor.",
+        "setasign/fpdf": "Required by the merge post-processor (FPDI builds on top of it).",
+        "spatie/browsershot": "Required to use the Browsershot driver (also needs Node.js and Chromium).",
+        "twig/twig": "Required to use the Twig source."
+    },
+    "autoload": {
+        "psr-4": {
+            "Vellum\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Vellum\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Vellum\\PdfServiceProvider"
+            ],
+            "aliases": {
+                "Pdf": "Vellum\\Facades\\Pdf"
+            }
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "php-http/discovery": true,
+            "tbachert/spi": true
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/phpunit",
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=1G",
+        "lint": "vendor/bin/pint",
+        "lint:check": "vendor/bin/pint --test",
+        "check": [
+            "@lint:check",
+            "@analyse",
+            "@test"
+        ]
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": true
+}
