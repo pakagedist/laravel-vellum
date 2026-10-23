@@ -77,6 +77,7 @@ return [
                 'printBackground' => true,
                 'scale' => 1,
                 'preferCSSPageSize' => false,
+                'node_modules_path' => env('BROWSERSHOT_NODE_MODULES_PATH', base_path('node_modules')),
             ],
         ],
 

@@ -12,6 +12,7 @@ use Vellum\Contracts\Driver;
 use Vellum\Contracts\Source;
 use Vellum\Exceptions\DriverNotSupportedException;
 use Vellum\Exceptions\PdfGenerationException;
+use Vellum\Support\PageHtml;
 
 /**
  * Renders the PDF with mPDF.
@@ -43,6 +44,8 @@ final class MpdfDriver implements Driver
         }
 
         $html = $source->load($config);
+
+        $html = PageHtml::applyPaperSize($html, $config->paper, $config->orientation);
 
         $options = [
             'format' => $config->paper->label(),

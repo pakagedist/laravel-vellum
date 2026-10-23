@@ -47,6 +47,7 @@ final class DomPdfDriver implements Driver
         $html = $source->load($config);
 
         $html = PageHtml::injectMargins($html, $config->margins);
+        $html = PageHtml::applyPaperSize($html, $config->paper, $config->orientation);
 
         if ($config->font !== null && $config->font !== '') {
             $html = PageHtml::applyFontFamily($html, $config->font);

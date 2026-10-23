@@ -5,6 +5,9 @@ declare(strict_types=1);
 namespace Vellum\Support;
 
 use Vellum\Config\Margins;
+use Vellum\Config\Orientation;
+use Vellum\Config\PaperSize;
+use Vellum\Exceptions\InvalidConfigurationException;
 
 /**
  * Helpers to apply page level settings to the generated HTML.
@@ -24,6 +27,147 @@ final class PageHtml
         }
 
         return self::injectStyle($html, sprintf('@page{margin:%s;}', $margins->toCss()));
+    }
+
+    /**
+     * Remove the `size` declarations of the @page rules.
+     *
+     * The engines do not read the property in the same way: mPDF parses a
+     * paper name as a zero sized page (and the layout collapses), DOMPDF
+     * lets the template override the configured paper and Chromium ignores
+     * the rule. The paper size always comes from the document configuration,
+     * so the declarations found in the templates are removed.
+     */
+    public static function stripPageSize(string $html): string
+    {
+        return (string) preg_replace_callback(
+            '/(@page\b[^{]*\{)([^}]*)\}/i',
+            static function (array $matches): string {
+                $body = (string) preg_replace('/(?<![\w-])size\s*:[^;}]*;?/i', '', $matches[2]);
+                $body = (string) preg_replace('/;\s*;/', ';', $body);
+
+                if (trim($body, " \t\r\n;") === '') {
+                    return '';
+                }
+
+                return $matches[1].$body.'}';
+            },
+            $html,
+        );
+    }
+
+    /**
+     * The paper sizes declared in the @page rules of the document.
+     *
+     * @return list<string>
+     */
+    public static function pageSizes(string $html): array
+    {
+        $sizes = [];
+
+        if (preg_match_all('/@page\b[^{]*\{([^}]*)\}/i', $html, $blocks) === 0) {
+            return [];
+        }
+
+        foreach ($blocks[1] as $body) {
+            if (preg_match_all('/(?<![\w-])size\s*:\s*([^;}]*)/i', $body, $matches) === 0) {
+                continue;
+            }
+
+            foreach ($matches[1] as $value) {
+                $value = trim($value);
+
+                if ($value !== '') {
+                    $sizes[] = $value;
+                }
+            }
+        }
+
+        return $sizes;
+    }
+
+    /**
+     * The @page sizes that do not match the paper size of the document.
+     *
+     * @return list<string>
+     */
+    public static function conflictingPageSizes(string $html, PaperSize $paper, Orientation $orientation): array
+    {
+        $conflicts = [];
+
+        foreach (self::pageSizes($html) as $value) {
+            $tokens = preg_split('/\s+/', strtolower(trim($value))) ?: [];
+
+            $declaredOrientation = null;
+            $declaredPaper = null;
+
+            foreach ($tokens as $token) {
+                if ($token === 'landscape' || $token === 'portrait') {
+                    $declaredOrientation = $token;
+
+                    continue;
+                }
+
+                if ($token === '' || $token === 'auto') {
+                    continue;
+                }
+
+                $declaredPaper = $token;
+            }
+
+            if ($declaredPaper !== null) {
+                try {
+                    $parsed = PaperSize::parse($declaredPaper);
+                } catch (InvalidConfigurationException) {
+                    $conflicts[] = $value;
+
+                    continue;
+                }
+
+                if ($parsed !== $paper) {
+                    $conflicts[] = $value;
+
+                    continue;
+                }
+
+                // A paper without an orientation keyword means portrait.
+                $declaredOrientation ??= 'portrait';
+            }
+
+            if ($declaredOrientation !== null) {
+                $expected = $orientation->isLandscape() ? 'landscape' : 'portrait';
+
+                if ($declaredOrientation !== $expected) {
+                    $conflicts[] = $value;
+                }
+            }
+        }
+
+        return $conflicts;
+    }
+
+    /**
+     * Apply the paper size of the document to the HTML.
+     *
+     * The @page size declarations of the templates are removed, because every
+     * engine reads them in a different way, and a warning is raised when one
+     * of them does not match the configured paper.
+     */
+    public static function applyPaperSize(string $html, PaperSize $paper, Orientation $orientation): string
+    {
+        $conflicts = self::conflictingPageSizes($html, $paper, $orientation);
+
+        $html = self::stripPageSize($html);
+
+        foreach ($conflicts as $conflict) {
+            trigger_error(sprintf(
+                'The @page size "%s" was ignored: the paper size comes from the document configuration (%s).',
+                $conflict,
+                $paper->label(),
+            ), E_USER_WARNING);
+        }
+
+        return $html;
     }
 
     /**

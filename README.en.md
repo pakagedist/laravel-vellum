@@ -1,23 +1,80 @@
-# Laravel Vellum
+# 📄 Laravel Vellum
 
 > **One API. Any source. Any engine. Every compliance feature.**
 >
-> Generate a PDF in Laravel from *anything* — a Blade view, raw HTML, a file on disk, a Twig
-> template, a remote URL — and render it with *any* engine — DOMPDF, Chromium (Browsershot),
-> mPDF — without changing a single line of your application code when you switch.
+> Turn *anything* — a Blade view, raw HTML, a file, Twig, a remote URL — into a PDF with *any
+> engine* — DOMPDF, Chromium (Browsershot), mPDF — without rewriting your code.
 >
-> **Vellum** — *the sheet the document is composed on*. You decide where the content comes from
-> and which engine composes it; Vellum takes care of the rest.
+> **Vellum** — *the sheet the document is composed on*. You pick the source and the engine; Vellum
+> does the rest.
 
-[![PHP](https://img.shields.io/badge/php-%5E8.2-777bb4?logo=php&logoColor=white)](https://www.php.net/)
-[![Packagist](https://img.shields.io/packagist/v/laravel-vellum/laravel-vellum?label=packagist&logo=packagist)](https://packagist.org/packages/laravel-vellum/laravel-vellum)
-[![Laravel](https://img.shields.io/badge/laravel-10%20%7C%2011%20%7C%2012-ff2d20?logo=laravel&logoColor=white)](https://laravel.com)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![PHPStan](https://img.shields.io/badge/phpstan-level%20max-b8c25c)](https://phpstan.org)
-[![Tests](https://img.shields.io/badge/tests-114%20passed-success)](tests)
-[![Code style](https://img.shields.io/badge/code%20style-pint-ff2d20)](pint.json)
+<p align="center">
+  <img alt="PHP" src="https://img.shields.io/badge/php-%5E8.2-777bb4?logo=php&logoColor=white">
+  <img alt="Laravel" src="https://img.shields.io/badge/laravel-10%20%7C%2011%20%7C%2012%20%7C%2013-ff2d20?logo=laravel&logoColor=white">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-124%20passed-2ea043">
+  <img alt="PHPStan" src="https://img.shields.io/badge/phpstan-level%20max-b8c25c">
+  <img alt="Pint" src="https://img.shields.io/badge/code%20style-pint-ff2d20">
+  <img alt="License" src="https://img.shields.io/badge/license-MIT-3da639">
+</p>
+
+<p align="center">
+  <img alt="5 sources" src="https://img.shields.io/badge/%F0%9F%93%A5%20sources-5-6366f1">
+  <img alt="4 drivers" src="https://img.shields.io/badge/%E2%9A%99%EF%B8%8F%20drivers-4-8b5cf6">
+  <img alt="20 combinations" src="https://img.shields.io/badge/%F0%9F%A7%A9%20combinations-20-ec4899">
+  <img alt="PDF/A-3b" src="https://img.shields.io/badge/PDF%2FA--3b-%E2%9C%93-f59e0b">
+  <img alt="ZUGFeRD" src="https://img.shields.io/badge/ZUGFeRD-Factur--X-10b981">
+  <img alt="PKCS#7 signature" src="https://img.shields.io/badge/signature-PKCS%237-ef4444">
+</p>
 
 [Español](README.md) · **English**
+
+> [!NOTE]
+> **Status:** the package is not published on Packagist yet. Install it from a local
+> (`type: path`) repository; see [Installation](#3-installation).
+
+---
+
+## ⚡ In 30 seconds
+
+| # | Step | Action |
+| :-: | --- | --- |
+| 1️⃣ | **Install** | Add the local repository and run `composer update` |
+| 2️⃣ | **Pick an engine** | `composer require dompdf/dompdf` (or mPDF / Browsershot) |
+| 3️⃣ | **Render** | `Pdf::view('invoice', $data)->download('invoice.pdf')` |
+
+Add the package to your `composer.json`:
+
+```json
+{
+    "repositories": [
+        { "type": "path", "url": "../laravel-vellum", "options": { "symlink": true } }
+    ],
+    "require": {
+        "laravel-vellum/laravel-vellum": "*@dev"
+    }
+}
+```
+
+```bash
+composer update laravel-vellum/laravel-vellum
+composer require dompdf/dompdf   # or mpdf/mpdf, or spatie/browsershot
+php artisan vendor:publish --tag=pdf-config
+```
+
+```php
+use Vellum\Facades\Pdf;
+
+return Pdf::view('invoices.invoice', ['invoice' => $invoice])
+    ->driver('dompdf')
+    ->paper('a4')
+    ->download('invoice.pdf');
+```
+
+> [!TIP]
+> Change only `->driver('dompdf')` to `->driver('mpdf')` or `->driver('browsershot')`: the rest of
+> the document stays the same.
+
+Details are in [Installation](#3-installation) and [Quick start](#4-quick-start).
 
 ---
 
@@ -25,23 +82,23 @@
 
 | # | Section | What you will find |
 | --- | --- | --- |
-| 1 | [Why another PDF package](#1-why-another-pdf-package) | Honest comparison with the packages you already know |
-| 2 | [At a glance](#2-at-a-glance) | The capability matrix and the architecture in one picture |
-| 3 | [Installation](#3-installation) | Composer, engines, config, Node/Chromium, Lumen |
-| 4 | [Quick start](#4-quick-start) | The five terminal methods and the fluent API |
-| 5 | [Where the package lives in your app](#5-where-the-package-lives-in-your-app) | File-by-file map of every file you touch |
-| 6 | [Sources](#6-sources) | 5 sources + your own, with real examples |
-| 7 | [Drivers](#7-drivers) | 4 drivers + your own, with the upstream library explained |
-| 8 | [Configuration reference](#8-configuration-reference) | `config/pdf.php` explained key by key |
-| 9 | [Layering and precedence](#9-layering-and-precedence) | Exactly who wins, and why |
-| 10 | [Post-processing pipeline](#10-post-processing-pipeline) | Metadata, XMP, PDF/A-3b, embeds, merge, signature |
-| 11 | [Recipes](#11-recipes) | 14 ready-to-copy recipes for common tasks |
-| 12 | [Extending the package](#12-extending-the-package) | Custom source, driver, processor |
-| 13 | [Errors, warnings, timeouts](#13-errors-warnings-timeouts) | The full exception map and the resilience rules |
-| 14 | [Testing your application](#14-testing-your-application) | The Fake driver and the call recorder |
-| 15 | [Project structure](#15-project-structure) | Every file of `src/` explained |
-| 16 | [Development and CI](#16-development-and-ci) | Commands and the matrix |
-| 17 | [Ecosystem map](#17-ecosystem-map) | Who does what, and when to use what |
+| 1 | 🧭 [Why another PDF package](#1-why-another-pdf-package) | Honest comparison with the packages you already know |
+| 2 | 🧩 [At a glance](#2-at-a-glance) | The capability matrix and the architecture in one picture |
+| 3 | 📦 [Installation](#3-installation) | Local repository, engines, config, Node/Chromium, Lumen |
+| 4 | 🚀 [Quick start](#4-quick-start) | The five terminal methods and the fluent API |
+| 5 | 🗂️ [Where the package lives in your app](#5-where-the-package-lives-in-your-app) | File-by-file map of every file you touch |
+| 6 | 📥 [Sources](#6-sources) | 5 sources + your own, with real examples |
+| 7 | ⚙️ [Drivers](#7-drivers) | 4 drivers + your own, with the upstream library explained |
+| 8 | 🧰 [Configuration reference](#8-configuration-reference) | `config/pdf.php` explained key by key |
+| 9 | 🪄 [Layering and precedence](#9-layering-and-precedence) | Exactly who wins, and why |
+| 10 | 🧪 [Post-processing pipeline](#10-post-processing-pipeline) | Metadata, XMP, PDF/A-3b, embeds, merge, signature |
+| 11 | 🍳 [Recipes](#11-recipes) | 14 ready-to-copy recipes for common tasks |
+| 12 | 🧱 [Extending the package](#12-extending-the-package) | Custom source, driver, processor |
+| 13 | 🚨 [Errors, warnings, timeouts](#13-errors-warnings-timeouts) | The full exception map and the resilience rules |
+| 14 | ✅ [Testing your application](#14-testing-your-application) | The Fake driver and the call recorder |
+| 15 | 🗺️ [Project structure](#15-project-structure) | Every file of `src/` explained |
+| 16 | 🛠️ [Development and CI](#16-development-and-ci) | Commands and the matrix |
+| 17 | 🌍 [Ecosystem map](#17-ecosystem-map) | Who does what, and when to use what |
 
 ---
 
@@ -59,11 +116,35 @@ There are excellent packages out there. Most of them bind you to **one engine**:
 **This package is the layer above all of them.** It keeps the *shape* of the packages you already
 use (a facade, a fluent builder, `->download()`) and adds the three things they lack:
 
-1. **A source contract.** Blade, HTML, file, Twig, URL — and your own — behind one interface.
-2. **A driver contract.** Engines are *optional* dependencies, never hard requirements. Missing
-   engine ⇒ a clear exception that tells you what to `composer require`.
-3. **A post-processing pipeline.** PDF/A-3b, XMP, ZUGFeRD/Factur-X embeddings, merging and
-   signatures work **on the bytes**, so they work with every engine — including the fake one.
+| | Superpower | What it gives you |
+| :-: | --- | --- |
+| 📥 | **A source contract** | Blade, HTML, file, Twig, URL — and yours — behind one interface. |
+| ⚙️ | **A driver contract** | Engines are *optional* dependencies. Missing ⇒ an exception with the exact `composer require`. |
+| 🧪 | **A post-processing pipeline** | PDF/A-3b, XMP, ZUGFeRD/Factur-X embeds, merge and signatures work **on the bytes**, with every engine — including the fake one. |
+
+```mermaid
+flowchart LR
+    A["📥 Source<br/><small>Blade · HTML · File · Twig · URL</small>"] --> B["🧱 PdfBuilder<br/><small>fluent, immutable API</small>"]
+    B --> C["🪄 ConfigResolver<br/><small>3 typed layers</small>"]
+    C --> D["⚙️ Driver<br/><small>dompdf · browsershot · mpdf · fake</small>"]
+    D --> E["🧪 Pipeline<br/><small>XMP · PDF/A · embeds · merge · signature</small>"]
+    E --> F["📦 PdfResult<br/><small>bytes · save · stream · download</small>"]
+
+    classDef source fill:#eef2ff,stroke:#6366f1,stroke-width:2px,color:#312e81;
+    classDef builder fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px,color:#4c1d95;
+    classDef driver fill:#ecfeff,stroke:#06b6d4,stroke-width:2px,color:#164e63;
+    classDef pipeline fill:#fff7ed,stroke:#f59e0b,stroke-width:2px,color:#78350f;
+    classDef result fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#064e3b;
+
+    class A source;
+    class B,C builder;
+    class D driver;
+    class E pipeline;
+    class F result;
+```
+
+<details>
+<summary>🧱 The same diagram as text (terminal or viewers without Mermaid)</summary>
 
 ```
         ┌───────────────────── Vellum\Facades\Pdf ─────────────────────┐
@@ -81,56 +162,101 @@ use (a facade, a fluent builder, `->download()`) and adds the three things they 
    Sources: Blade · HTML · File · Twig · URL · custom
 ```
 
+</details>
+
 ---
 
 ## 2. At a glance
 
-### 2.1 The five sources × four drivers matrix
+### 2.1 📥 The five sources × four drivers matrix
 
-Every source works with every driver. **25 combinations out of the box**, plus your own.
+Every source works with every driver. **20 combinations out of the box** (5 sources × 4 drivers),
+plus whatever you add with your own contracts.
 
 | | `dompdf` | `browsershot` | `mpdf` | `fake` |
 | --- | :---: | :---: | :---: | :---: |
-| `blade` (Blade view) | ✅ | ✅ | ✅ | ✅ |
-| `html` (raw HTML string) | ✅ | ✅ | ✅ | ✅ |
-| `file` (local file) | ✅ | ✅ | ✅ | ✅ |
-| `twig` (Twig template) | ✅ | ✅ | ✅ | ✅ |
-| `url` (remote URL) | ✅ | ✅ | ✅ | ✅ |
-| `custom` (your `Source`) | ✅ | ✅ | ✅ | ✅ |
+| 📄 `blade` (Blade view) | ✅ | ✅ | ✅ | ✅ |
+| 🧾 `html` (raw HTML string) | ✅ | ✅ | ✅ | ✅ |
+| 📁 `file` (local file) | ✅ | ✅ | ✅ | ✅ |
+| 🌿 `twig` (Twig template) | ✅ | ✅ | ✅ | ✅ |
+| 🌐 `url` (remote URL) | ✅ | ✅ | ✅ | ✅ |
+| 🧩 `custom` (your `Source`) | ✅ | ✅ | ✅ | ✅ |
 
-### 2.2 What the package can do, and where the feature lives
+### 2.2 🧰 What the package can do, and where the feature lives
 
-| Capability | API | Implemented in | Notes |
-| --- | --- | --- | --- |
-| Pick an engine per document | `->driver('mpdf')` | `PdfBuilder::driver()` | Overrides the config default. |
-| Paper size / orientation | `->paper('a4', 'landscape')` | `Config\PaperSize`, `Config\Orientation` | 8 sizes × 2 orientations, validated. |
-| Fonts (family + local file) | `->font('Inter', '/path.ttf')` | `Support\PageHtml` | Injects `@font-face` into the HTML. |
-| Margins (mm) | `->margins(10, 10, 10, 10)` | `Config\Margins` | `@page` for DOMPDF, `SetMargins()` for mPDF, Puppeteer options for Chromium. |
-| Engine specific options | `->option('isPhpEnabled', false)` | `Config\DocumentOptions` | Forwarded verbatim to the engine. |
-| Document metadata | `->metadata([...])` | `Pipeline\Processors\SetDocumentMetadata` | Title, author, subject, keywords, creator, custom. |
-| XMP packet | `->xmp([...])`, `->xmpNamespace()` | `Pipeline\Processors\EmbedXmpMetadata` | Dublin Core + custom namespaces. |
-| PDF/A-3b | `->pdfa('/path/sRGB2014.icc')` | `Pipeline\Processors\MarkPdfA3b` | Output intent + `pdfaid` metadata. |
-| Embedded files | `->embedFile($path, $name, 'Data', 'text/xml')` | `Pipeline\Processors\EmbedFile` | `/Filespec` + `/EmbeddedFile`. |
-| ZUGFeRD / Factur-X | `->zugferd('/tmp/invoice.xml')` | `zugferd()` + the two processors above | Convenience wrapper over XMP + PDF/A + embed. |
-| Merge PDFs | `->merge('/tmp/cover.pdf')` | `Pipeline\Processors\MergePdfs` | Uses [`setasign/fpdi`](https://github.com/setasign/FPDI). |
-| Digital signature | `->sign('/cert.p12', 'secret')` | `Pipeline\Processors\AddSignature` | PKCS#7 detached, CMS/PKCS#7 DER. |
-| Custom post-processing | `->process(new MyProcessor())` | `Pipeline\Pipeline` | Also registerable globally in the config. |
-| Timeout protection | `->timeout(15)` | `Support\RenderGuard` | Hard limit, never an infinite render. |
-| Warning collection | `->strictWarnings()` | `Support\WarningCollector` | Engine warnings are logged, never swallowed. |
-| Stream / download / save | `->stream()`, `->download()`, `->save()` | `Support\PdfResult` | Standard Laravel responses. |
-| Deterministic test doubles | `->driver('fake')` | `Drivers\FakeDriver` | Valid PDF bytes, zero engines. |
+| | Capability | API | Implemented in | Notes |
+| :-: | --- | --- | --- | --- |
+| 🎯 | Pick an engine per document | `->driver('mpdf')` | `PdfBuilder::driver()` | Overrides the config default. |
+| 📐 | Paper size / orientation | `->paper('a4', 'landscape')` | `Config\PaperSize`, `Config\Orientation` | 8 sizes × 2 orientations, validated. Paper always comes from here, not from CSS. |
+| 🔤 | Fonts (family + local file) | `->font('Inter', '/path.ttf')` | `Support\PageHtml` | Injects `@font-face` into the HTML. |
+| 📏 | Margins (mm) | `->margins(10, 10, 10, 10)` | `Config\Margins` | `@page` for DOMPDF, `SetMargins()` for mPDF, Puppeteer options for Chromium. |
+| 🧰 | Engine specific options | `->option('isPhpEnabled', false)` | `Config\DocumentOptions` | Forwarded verbatim to the engine. |
+| 🏷️ | Document metadata | `->metadata([...])` | `Pipeline\Processors\SetDocumentMetadata` | Title, author, subject, keywords, creator, custom. |
+| 🧾 | XMP packet | `->xmp([...])`, `->xmpNamespace()` | `Pipeline\Processors\EmbedXmpMetadata` | Dublin Core + custom namespaces. |
+| 🗄️ | PDF/A-3b | `->pdfa('/path/sRGB2014.icc')` | `Pipeline\Processors\MarkPdfA3b` | Output intent + `pdfaid` metadata. |
+| 📎 | Embedded files | `->embedFile($path, $name, 'Data', 'text/xml')` | `Pipeline\Processors\EmbedFile` | `/Filespec` + `/EmbeddedFile`. |
+| 🇪🇺 | ZUGFeRD / Factur-X | `->zugferd('/tmp/invoice.xml')` | `zugferd()` + the two processors above | Convenience wrapper over XMP + PDF/A + embed. |
+| 🔗 | Merge PDFs | `->merge('/tmp/cover.pdf')` | `Pipeline\Processors\MergePdfs` | Uses [`setasign/fpdi`](https://github.com/setasign/FPDI). |
+| ✍️ | Digital signature | `->sign('/cert.p12', 'secret')` | `Pipeline\Processors\AddSignature` | PKCS#7 detached, CMS/PKCS#7 DER. |
+| 🧩 | Custom post-processing | `->process(new MyProcessor())` | `Pipeline\Pipeline` | Also registerable globally in the config. |
+| ⏱️ | Timeout protection | `->timeout(15)` | `Support\RenderGuard` | Hard limit, never an infinite render. |
+| ⚠️ | Warning collection | `->strictWarnings()` | `Support\WarningCollector` | Engine warnings are logged, never swallowed. |
+| 📤 | Stream / download / save | `->stream()`, `->download()`, `->save()` | `Support\PdfResult` | Standard Laravel responses. |
+| 🧪 | Deterministic test doubles | `->driver('fake')` | `Drivers\FakeDriver` | Valid PDF bytes, zero engines. |
+
+### 2.3 🧭 Pick your engine in 10 seconds
+
+| If you need… | Use | Why |
+| --- | :-: | --- |
+| 🧾 Simple invoices and reports, no Node | `dompdf` | Pure PHP, zero infrastructure. |
+| 🌐 Tailwind, CSS Grid, web fonts or pixel-perfect output | `browsershot` | Chromium renders exactly what the browser shows. |
+| 🌍 Arabic, Hebrew, CJK, RTL or lots of PDFs | `mpdf` | Unicode and bidirectional text out of the box. |
+| 🧪 Fast, deterministic tests | `fake` | Valid PDF, no engine or browser. |
+
+> [!TIP]
+> The engine can be set in the config **or** per document with `->driver()`. Switching engines
+> changes neither the source nor the template.
 
 ---
 
 ## 3. Installation
 
-### 3.1 The package itself
+| Requirement | Version |
+| --- | --- |
+| PHP | `^8.2` (tested on 8.2, 8.3, 8.4 and 8.5) |
+| Laravel | 10, 11, 12 or 13; Lumen is supported too |
+| `ext-json` | required |
+| `ext-openssl` | only if you sign documents |
+| `ext-curl` | only if you use the `url` source |
+| Node.js + Chromium | only for the `browsershot` driver |
 
-```bash
-composer require laravel-vellum/laravel-vellum
+### 3.1 📦 The package itself
+
+The package is **not published on Packagist yet**, so install it from a local Composer
+repository. Add the repository and the requirement to your `composer.json`:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../laravel-vellum",
+            "options": { "symlink": true }
+        }
+    ],
+    "require": {
+        "laravel-vellum/laravel-vellum": "*@dev"
+    }
+}
 ```
 
-That is it. The service provider (`Vellum\PdfServiceProvider`) and the facade alias
+Adjust `url` if the package lives elsewhere, then update:
+
+```bash
+composer update laravel-vellum/laravel-vellum
+```
+
+The service provider (`Vellum\PdfServiceProvider`) and the facade alias
 (`Pdf` → `Vellum\Facades\Pdf`) are **auto-discovered** through the `extra.laravel` section of
 `composer.json`.
 
@@ -144,7 +270,7 @@ php artisan vendor:publish --tag=pdf-config
 Published: config/pdf.php
 ```
 
-### 3.2 Engines are optional — install only what you use
+### 3.2 🔌 Engines are optional — install only what you use
 
 The package itself does **not** depend on any rendering engine. Pick one (or several):
 
@@ -165,7 +291,7 @@ composer require setasign/fpdi        # merge post-processor (pulls setasign/fpd
 If you pick a driver whose engine is missing, the package **does not fail silently**: it throws
 `DriverNotSupportedException` with the exact `composer require` command you need.
 
-### 3.3 Browsershot / Chromium setup (the only non-trivial install)
+### 3.3 🌐 Browsershot / Chromium setup (the only non-trivial install)
 
 `spatie/browsershot` drives Puppeteer from Node.js:
 
@@ -201,7 +327,11 @@ the fallback:
 ],
 ```
 
-### 3.4 Lumen
+> [!TIP]
+> The published configuration already ships `node_modules_path` pointing to `base_path('node_modules')`:
+> install Puppeteer in the application (`npm install puppeteer`) and the driver finds it on its own.
+
+### 3.4 🧩 Lumen
 
 Lumen does **not** read the `extra.laravel` section of `composer.json`, so register the provider by
 hand in `bootstrap/app.php`:
@@ -277,7 +407,7 @@ final class InvoiceService
 
 This is the complete list of files you typically create or touch. Nothing else changes.
 
-### 5.1 The file map
+### 5.1 🗂️ The file map
 
 | File | Role | What you write |
 | --- | --- | --- |
@@ -292,7 +422,7 @@ This is the complete list of files you typically create or touch. Nothing else c
 | `tests/Feature/InvoicePdfTest.php` | Tests without engines | `->driver('fake')` + `Pdf::fakeDriver()->calls()`. |
 | `resources/pdf/sRGB2014.icc` | *(optional)* PDF/A colour profile | The ICC profile used by `->pdfa()`. |
 
-### 5.2 A route
+### 5.2 🛣️ A route
 
 ```php
 // routes/web.php
@@ -306,7 +436,7 @@ Route::get('/invoices/{invoice}/pdf', function (Invoice $invoice) {
 })->name('invoices.pdf');
 ```
 
-### 5.3 A controller
+### 5.3 🎛️ A controller
 
 ```php
 // app/Http/Controllers/InvoiceController.php
@@ -326,7 +456,7 @@ final class InvoiceController extends Controller
 }
 ```
 
-### 5.4 A dedicated service (recommended for reuse)
+### 5.4 🧰 A dedicated service (recommended for reuse)
 
 ```php
 // app/Services/Pdf/InvoicePdf.php
@@ -360,7 +490,7 @@ InvoicePdf::class, fn ($s) => $s->build($invoice)->download('invoice.pdf');
 InvoicePdf::class, fn ($s) => $s->build($invoice)->save($path);
 ```
 
-### 5.5 The Blade template
+### 5.5 📄 The Blade template
 
 The template is plain HTML. Use the same views you already have:
 
@@ -372,7 +502,7 @@ The template is plain HTML. Use the same views you already have:
     <meta charset="utf-8">
     <title>Invoice {{ $invoice->number }}</title>
     <style>
-        @page { size: A4; }
+        /* The paper and the orientation come from the document (->paper()), not from the CSS. */
         body { font-family: "DejaVu Sans", sans-serif; font-size: 12px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { border-bottom: 1px solid #ddd; padding: 6px; text-align: left; }
@@ -398,11 +528,21 @@ The template is plain HTML. Use the same views you already have:
 </html>
 ```
 
-> **Tip:** the package injects `<style>@page{margin:…}</style>` (DOMPDF), `font-family` and
+> [!TIP]
+> The package injects `<style>@page{margin:…}</style>` (DOMPDF), `font-family` and
 > `@font-face` rules for you when you call `->margins()` / `->font()`. You do not have to write
-> `@page` yourself — but you can, and it wins for DOMPDF.
+> `@page` yourself.
+>
+> [!IMPORTANT]
+> **The paper always comes from the document** (`->paper()`, `->orientation()` or `config/pdf.php`),
+> never from the template. The `@page { size: … }` declarations left in the CSS are **stripped**
+> before the HTML reaches the engine, because every engine reads them differently: mPDF parses a
+> paper name as a zero sized page (and the layout collapses), DOMPDF lets the template override
+> the document and Chromium ignores them. When a template declares a size that does **not** match
+> the configured one, the engine raises a warning —visible in `$result->warnings`— instead of
+> changing the paper silently.
 
-### 5.6 Registering a custom driver (service provider)
+### 5.6 🔌 Registering a custom driver (service provider)
 
 ```php
 // app/Providers/AppServiceProvider.php
@@ -418,7 +558,7 @@ final class AppServiceProvider extends ServiceProvider
 }
 ```
 
-### 5.7 Tests
+### 5.7 ✅ Tests
 
 ```php
 // tests/Feature/InvoicePdfTest.php
@@ -456,7 +596,7 @@ Pdf::url('https://example.com/invoice');               // remote URL
 Pdf::from(new MyCustomSource());                        // your own
 ```
 
-### 6.1 `blade` — Blade views
+### 6.1 📄 `blade` — Blade views
 
 **What it is for:** every document that already lives in your application: invoices, contracts,
 reports, labels. It uses the *same* view factory as HTTP responses, so components, `@include`,
@@ -478,9 +618,10 @@ return Pdf::view('invoices.invoice', [
 | Render error | Wrapped in `SourceNotFoundException` with the original message. |
 | Custom engine | `Pdf::from(BladeSource::make($view, $data, 'php'))` forces the PHP engine. |
 
+> [!NOTE]
 > `Illuminate\View` is a hard requirement of the package (`illuminate/view` is in `require`).
 
-### 6.2 `html` — raw HTML
+### 6.2 🧾 `html` — raw HTML
 
 **What it is for:** HTML built on the fly, HTML coming from a CMS/API, or a template compiled by
 another system.
@@ -493,7 +634,7 @@ $bytes = Pdf::html($html)->paper('a5')->bytes();
 
 Zero overhead: the string is used verbatim.
 
-### 6.3 `file` — local file
+### 6.3 📁 `file` — local file
 
 **What it is for:** static HTML templates shipped with the application, exported reports, or files
 generated by another process.
@@ -507,7 +648,7 @@ Pdf::file('file:///var/www/exports/report.html');      // file:// prefix is stri
 Relative paths are resolved against `base_path()`, so the same code works in every environment.
 Unreadable files raise `SourceNotFoundException::missingFile()`.
 
-### 6.4 `twig` — Twig templates
+### 6.4 🌿 `twig` — Twig templates
 
 **What it is for:** teams coming from Symfony, or projects that want a template engine with no
 Laravel dependencies at all. Uses [`twig/twig`](https://github.com/twigphp/Twig) (~8.4k ⭐, BSD-3).
@@ -545,7 +686,7 @@ in order. Missing templates raise `SourceNotFoundException::missingFile()`; a Tw
 wrapped with the original message. `twig/twig` is an optional dependency: without it you get
 `SourceNotFoundException::missingLibrary('twig/twig', 'twig')`.
 
-### 6.5 `url` — remote URL
+### 6.5 🌐 `url` — remote URL
 
 **What it is for:** printing a web page, an invoice hosted in another system, or a receipt page.
 
@@ -577,10 +718,11 @@ Implementation notes (all of them configurable in `config/pdf.php` → `sources.
 ],
 ```
 
+> [!NOTE]
 > `ext-curl` is required for this source; without it you get
 > `SourceNotFoundException::missingLibrary('ext-curl', 'url')`.
 
-### 6.6 Writing your own source
+### 6.6 🧩 Writing your own source
 
 ```php
 use Vellum\Config\ResolvedConfig;
@@ -636,11 +778,12 @@ Pdf::html('<p>x</p>')->driver('mpdf');
 | `mpdf` | [`mpdf/mpdf`](https://github.com/mpdf/mpdf) (~4.7k ⭐, v8.3.1) | **GPL-2.0** ⚠️ | `composer require mpdf/mpdf` | UTF-8, RTL languages, barcodes, fast bulk generation |
 | `fake` | *(built in)* | MIT | — | Tests, CI without engines |
 
-> ⚠️ **License note:** mPDF is GPL-2.0 (copyleft) and DOMPDF is LGPL-2.1. If you ship a closed-source
+> [!WARNING]
+> **License note:** mPDF is GPL-2.0 (copyleft) and DOMPDF is LGPL-2.1. If you ship a closed-source
 > application, read those licenses — the *wrapper* being MIT does not change the engine's terms.
 > `browsershot` (MIT) has no such restriction.
 
-### 7.1 `dompdf` — the pure-PHP engine
+### 7.1 🐘 `dompdf` — the pure-PHP engine
 
 **Upstream, in plain PHP:**
 
@@ -716,7 +859,7 @@ tables, forms.
 **What it does not support:** JavaScript, CSS Grid, CSS variables, flexbox in full, heavy documents
 (it is slow with thousands of elements).
 
-### 7.2 `browsershot` — Chromium via Puppeteer
+### 7.2 🌐 `browsershot` — Chromium via Puppeteer
 
 **Upstream, in plain PHP:**
 
@@ -777,7 +920,7 @@ They fall back to `BROWSERSHOT_NODE_PATH`, `BROWSERSHOT_NPM_PATH`,
 **Trade-offs:** highest fidelity, but it needs Node.js + Chromium in your runtime image, it is
 slower and it consumes far more memory than the PHP engines.
 
-### 7.3 `mpdf` — fast, Unicode-first
+### 7.3 🌍 `mpdf` — fast, Unicode-first
 
 **Upstream, in plain PHP:**
 
@@ -820,6 +963,12 @@ Mapping done by the driver:
 | `->option('tempDir', …)` | constructor `tempDir` |
 | `->option('fontDir', …)` | constructor `fontDir` |
 
+> [!WARNING]
+> mPDF does not read the page size from the CSS (`@page { size: … }`): a paper name is parsed as
+> a zero sized page and the layout collapses. The driver strips that declaration and the paper
+> comes from the constructor (`format` + `orientation`), which is what guarantees that a document
+> has the same size in every engine.
+
 Every other mPDF constructor key works too (`mode`, `format`, `default_font_size`, `margin_*`,
 `tempDir`, `fontDir`, `fontdata`, `mode`, `allow_charset_conversion`, `ignore_invalid_utf8`,
 `autoScriptToLang`, `autoLangToFont`, `autoArabic`, `autoVietnamese`, `biDirectional`, `baseScript`,
@@ -827,13 +976,14 @@ Every other mPDF constructor key works too (`mode`, `format`, `default_font_size
 `defaultPagebreakType`, `setAutoTopMargin`, `setAutoBottomMargin`, `aliasNbPg`, `defaultCSS`,
 `curlTimeout`, `debug`, `showImageErrors`, `whitelistStreamWrappers`, `exposeVersion`, …).
 
+> [!NOTE]
 > The package always applies the margins through `SetMargins()`, so the mPDF `margin_*` constructor
 > keys are overridden by `->margins()`.
 
 **Trade-offs:** memory hungry (it keeps the whole document in memory), needs a writable `tempDir`,
 and its **GPL-2.0** license matters for closed-source products.
 
-### 7.4 `fake` — the test double
+### 7.4 🧪 `fake` — the test double
 
 **What it is for:** unit and feature tests that must not depend on a browser, a font cache or a
 native library — and deterministic bytes to compare against.
@@ -858,7 +1008,7 @@ $calls = Pdf::fakeDriver()->calls();
 Pdf::fakeDriver()->reset();
 ```
 
-### 7.5 Writing your own driver
+### 7.5 🧱 Writing your own driver
 
 ```php
 use Vellum\Config\ResolvedConfig;
@@ -999,7 +1149,7 @@ return [
 ];
 ```
 
-### 8.1 Every key, explained
+### 8.1 🔑 Every key, explained
 
 | Key | Type | Default | Meaning |
 | --- | --- | --- | --- |
@@ -1026,7 +1176,7 @@ return [
 | `logging.channel` | `?string` | `null` | Log channel; `null` = the application default. |
 | `logging.level` | `string` | `'info'` | Level declared for the package events. The package emits `info` (render) and `warning` (engine warnings); set the minimum level of the channel in `config/logging.php`. |
 
-### 8.2 Typed, never silently coerced
+### 8.2 🛡️ Typed, never silently coerced
 
 Every value is read through typed readers. A wrong type raises `InvalidConfigurationException`
 instead of being cast:
@@ -1053,6 +1203,30 @@ and the well-known boolean strings listed above.
 
 Three layers, one winner:
 
+```mermaid
+flowchart TB
+    subgraph CONFIG["config/pdf.php"]
+        G["🌍 global defaults"]
+        D["🔧 driver defaults"]
+    end
+    O["✍️ document overrides<br/><small>->paper() · ->option() · ->driver()</small>"]
+
+    G --> R["🪄 ResolvedConfig<br/><small>final, immutable configuration</small>"]
+    D --> R
+    O --> R
+    R --> P["📄 Rendered document"]
+
+    classDef config fill:#eef2ff,stroke:#6366f1,stroke-width:2px,color:#312e81;
+    classDef override fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#78350f;
+    classDef resolved fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#064e3b;
+    class G,D config;
+    class O override;
+    class R,P resolved;
+```
+
+<details>
+<summary>🧱 The precedence as text</summary>
+
 ```
         config/pdf.php                 config/pdf.php            your code
         'defaults'                     'drivers.<name>'          ->paper(), ->option()...
@@ -1061,6 +1235,8 @@ Three layers, one winner:
                              ▼                                          ▼
                      global defaults  <  driver defaults  <  document overrides
 ```
+
+</details>
 
 | Setting | Global | Driver | Document |
 | --- | :---: | :---: | :---: |
@@ -1091,10 +1267,15 @@ embedded files, merging and signatures work with *every* driver — including `f
 
 The order is fixed and intentional:
 
-```
-global processors (config/pdf.php)
-   → metadata → XMP / PDF-A-3b → embedded files → merge
-   → your ->process() processors → signature
+```mermaid
+flowchart LR
+    R["📄 render()"] --> M["🏷️ /Info"] --> X["🧾 XMP"] --> A["🗄️ PDF/A-3b"]
+    A --> E["📎 Embeds"] --> G["🔗 Merge"] --> P["🧩 Your processors"] --> S["✍️ Signature"] --> O["📦 Final PDF"]
+
+    classDef step fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px,color:#4c1d95;
+    classDef end fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#064e3b;
+    class R,M,X,A,E,G,P,S step;
+    class O end;
 ```
 
 | Step | Processor | What it writes |
@@ -1108,7 +1289,7 @@ global processors (config/pdf.php)
 | 5 | *your* `Processor` | Whatever you want. |
 | 6 | `AddSignature` | `/Sig` dictionary + `/ByteRange` + PKCS#7 detached signature. |
 
-### 10.1 Metadata
+### 10.1 🏷️ Metadata
 
 ```php
 Pdf::view('invoices.invoice')
@@ -1134,7 +1315,7 @@ entry** — there is no nested `custom` array.
 The `/Info` dictionary and the XMP packet are written from the same source of truth, so the two
 never disagree.
 
-### 10.2 XMP
+### 10.2 🧾 XMP
 
 ```php
 Pdf::view('reports.monthly')
@@ -1147,7 +1328,7 @@ Pdf::view('reports.monthly')
     ->download();
 ```
 
-### 10.3 PDF/A-3b
+### 10.3 🗄️ PDF/A-3b
 
 ```php
 Pdf::view('invoices.invoice')
@@ -1170,11 +1351,12 @@ Where to get the ICC profile: `sRGB2014.icc` is shipped by the PDF Association, 
 verapdf --flavour pdfa-3b invoice.pdf
 ```
 
+> [!IMPORTANT]
 > Without an ICC profile the `/OutputIntent` is **not** written: the `pdfaid` identification is
 > still added, but a strict PDF/A-3b validator will report a missing output intent. Always pass a
 > profile for archival documents.
 
-### 10.4 Embedded files and ZUGFeRD / Factur-X
+### 10.4 📎 Embedded files and ZUGFeRD / Factur-X
 
 ```php
 // Generic attachment
@@ -1210,7 +1392,7 @@ invoice. (`Data` means a plain attachment, `Source` means the original document.
 > [`horstoeko/zugferd`](https://github.com/horstoeko/zugferd) (~439 ⭐, MIT) or
 > [`easybill/zugferd-php`](https://github.com/easybill/zugferd-php) (~103 ⭐, MIT).
 
-### 10.5 Merging
+### 10.5 🔗 Merging
 
 ```php
 Pdf::view('invoices.invoice')
@@ -1242,7 +1424,7 @@ $pdf->Output();
 > Use [`setasign/TCPDF`/`tcpdi`](https://github.com/setasign/TCPDF) if you need to keep the
 > **interactive form fields** of the merged documents — FPDI imports the page *appearance* only.
 
-### 10.6 Signing
+### 10.6 ✍️ Signing
 
 ```php
 Pdf::view('invoices.invoice')
@@ -1270,7 +1452,7 @@ Verify it yourself:
 openssl smime -verify -inform DER -in signature.der -content invoice.pdf -noverify
 ```
 
-### 10.7 Custom processors
+### 10.7 🧩 Custom processors
 
 ```php
 use Vellum\Contracts\Processor;
@@ -1317,7 +1499,7 @@ for the specific ones.
 ## 11. Recipes
 
 <details open>
-<summary><b>1 · A simple invoice, no infrastructure</b></summary>
+<summary><b>1 · 🧾 A simple invoice, no infrastructure</b></summary>
 
 ```php
 return Pdf::view('invoices.invoice', ['invoice' => $invoice])
@@ -1328,7 +1510,7 @@ return Pdf::view('invoices.invoice', ['invoice' => $invoice])
 </details>
 
 <details>
-<summary><b>2 · A Tailwind dashboard printed to PDF</b></summary>
+<summary><b>2 · 📊 A Tailwind dashboard printed to PDF</b></summary>
 
 ```php
 return Pdf::view('reports.dashboard', ['metrics' => $metrics])
@@ -1342,7 +1524,7 @@ return Pdf::view('reports.dashboard', ['metrics' => $metrics])
 </details>
 
 <details>
-<summary><b>3 · A multilingual invoice (Arabic / Hebrew / CJK)</b></summary>
+<summary><b>3 · 🌍 A multilingual invoice (Arabic / Hebrew / CJK)</b></summary>
 
 ```php
 return Pdf::view('invoices.invoice', ['invoice' => $invoice])
@@ -1355,7 +1537,7 @@ return Pdf::view('invoices.invoice', ['invoice' => $invoice])
 </details>
 
 <details>
-<summary><b>4 · A ZUGFeRD 2.1 hybrid invoice</b></summary>
+<summary><b>4 · 🇪🇺 A ZUGFeRD 2.1 hybrid invoice</b></summary>
 
 ```php
 // 1. build the XML with atgp/factur-x or horstoeko/zugferd
@@ -1371,7 +1553,7 @@ return Pdf::view('invoices.invoice', ['invoice' => $invoice])
 </details>
 
 <details>
-<summary><b>5 · A PDF/A-3b archive copy</b></summary>
+<summary><b>5 · 🗄️ A PDF/A-3b archive copy</b></summary>
 
 ```php
 return Pdf::view('invoices.invoice', ['invoice' => $invoice])
@@ -1383,7 +1565,7 @@ return Pdf::view('invoices.invoice', ['invoice' => $invoice])
 </details>
 
 <details>
-<summary><b>6 · A contract with a cover page and the terms</b></summary>
+<summary><b>6 · 📚 A contract with a cover page and the terms</b></summary>
 
 ```php
 return Pdf::view('contracts.contract', ['contract' => $contract])
@@ -1396,7 +1578,7 @@ return Pdf::view('contracts.contract', ['contract' => $contract])
 </details>
 
 <details>
-<summary><b>7 · A signed delivery note</b></summary>
+<summary><b>7 · ✍️ A signed delivery note</b></summary>
 
 ```php
 return Pdf::view('delivery-notes.note', ['note' => $note])
@@ -1410,7 +1592,7 @@ return Pdf::view('delivery-notes.note', ['note' => $note])
 </details>
 
 <details>
-<summary><b>8 · Print a web page</b></summary>
+<summary><b>8 · 🖨️ Print a web page</b></summary>
 
 ```php
 return Pdf::url('https://billing.example.com/invoice/42')
@@ -1420,7 +1602,7 @@ return Pdf::url('https://billing.example.com/invoice/42')
 </details>
 
 <details>
-<summary><b>9 · Return the PDF as base64 in a JSON API</b></summary>
+<summary><b>9 · 🔌 Return the PDF as base64 in a JSON API</b></summary>
 
 ```php
 $result = Pdf::view('invoices.invoice', ['invoice' => $invoice])->render();
@@ -1434,7 +1616,7 @@ return response()->json([
 </details>
 
 <details>
-<summary><b>10 · Stream it inline in the browser</b></summary>
+<summary><b>10 · 👁️ Stream it inline in the browser</b></summary>
 
 ```php
 return Pdf::view('invoices.invoice', ['invoice' => $invoice])
@@ -1444,7 +1626,7 @@ return Pdf::view('invoices.invoice', ['invoice' => $invoice])
 </details>
 
 <details>
-<summary><b>11 · Render with a one-off engine</b></summary>
+<summary><b>11 · 🎛️ Render with a one-off engine</b></summary>
 
 ```php
 $bytes = Pdf::view('invoices.invoice')
@@ -1455,7 +1637,7 @@ $bytes = Pdf::view('invoices.invoice')
 </details>
 
 <details>
-<summary><b>12 · A global watermark for every document</b></summary>
+<summary><b>12 · 💧 A global watermark for every document</b></summary>
 
 ```php
 // app/Pdf/Processors/WatermarkProcessor.php
@@ -1477,7 +1659,7 @@ final class WatermarkProcessor implements Processor
 </details>
 
 <details>
-<summary><b>13 · Fail the request when the engine complains</b></summary>
+<summary><b>13 · 🚨 Fail the request when the engine complains</b></summary>
 
 ```php
 return Pdf::view('invoices.invoice')
@@ -1487,7 +1669,7 @@ return Pdf::view('invoices.invoice')
 </details>
 
 <details>
-<summary><b>14 · A queue job that renders and stores the file</b></summary>
+<summary><b>14 · 📬 A queue job that renders and stores the file</b></summary>
 
 ```php
 final class RenderInvoicePdf implements ShouldQueue
@@ -1555,7 +1737,7 @@ Capability::METADATA        // 'metadata'
 
 ## 13. Errors, warnings, timeouts
 
-### 13.1 The exception map
+### 13.1 🗺️ The exception map
 
 ```
 PdfGenerationException                    ← base class of every failure of the package
@@ -1578,7 +1760,7 @@ PdfGenerationException                    ← base class of every failure of the
 | `InvalidConfigurationException::unsupportedPaperSize()` | Unknown paper size. | Use one of the 8 supported sizes. |
 | `RenderingTimeoutException::exceeded()` | The render took longer than the timeout. | Increase `->timeout()` or simplify the document. |
 
-### 13.2 Warnings are never swallowed
+### 13.2 ⚠️ Warnings are never swallowed
 
 The engine's `E_WARNING`/`E_NOTICE` output is captured during the render, logged, and attached to
 the result:
@@ -1597,7 +1779,7 @@ Pdf::view('invoices.invoice')->strictWarnings()->download();
 'defaults' => ['fail_on_warnings' => true],
 ```
 
-### 13.3 Timeouts
+### 13.3 ⏱️ Timeouts
 
 ```php
 Pdf::view('huge-report')->timeout(120)->download();
@@ -1607,7 +1789,7 @@ The limit is enforced in two places: a hard interrupt during the render
 (`pcntl_alarm` when available) and a post-render check, so a slow pipeline cannot slip through.
 When the limit is hit you get a `RenderingTimeoutException`, never a hung worker.
 
-### 13.4 Logging
+### 13.4 📝 Logging
 
 Every render logs one `info` event and one `warning` event per warning:
 
@@ -1630,7 +1812,7 @@ your app because of logging.
 
 ## 14. Testing your application
 
-### 14.1 The Fake driver
+### 14.1 🧪 The Fake driver
 
 ```php
 use Vellum\Facades\Pdf;
@@ -1646,7 +1828,7 @@ public function test_the_invoice_is_a_pdf(): void
 }
 ```
 
-### 14.2 Asserting *how* the document was built
+### 14.2 🔍 Asserting *how* the document was built
 
 ```php
 public function test_the_invoice_uses_a4_portrait(): void
@@ -1664,7 +1846,7 @@ public function test_the_invoice_uses_a4_portrait(): void
 }
 ```
 
-### 14.3 Testing the whole chain without any engine
+### 14.3 🔗 Testing the whole chain without any engine
 
 Because the post-processing layer works on bytes, the fake driver supports PDF/A, embeddings,
 merging and signatures too — your tests never need Chromium:
@@ -1678,10 +1860,10 @@ public function test_the_invoice_is_pdfa(): void
 }
 ```
 
-### 14.4 The package's own suite
+### 14.4 ✅ The package's own suite
 
 ```bash
-composer test          # 114 tests / 219 assertions
+composer test          # 124 tests / 240 assertions
 composer analyse       # PHPStan, level max
 composer lint          # Pint
 composer check         # all three
@@ -1788,12 +1970,14 @@ composer check         # lint:check + analyse + test
 
 The CI matrix (`.github/workflows/ci.yml`):
 
-| PHP | Laravel 10 | Laravel 11 | Laravel 12 |
-| --- | :---: | :---: | :---: |
-| 8.2 | ✅ | ✅ | ✅ |
-| 8.3 | ✅ | ✅ | ✅ |
-| 8.4 | ✅ | ✅ | ✅ |
-| 8.5 | ✅ | ✅ | ✅ |
+| PHP | Laravel 10 | Laravel 11 | Laravel 12 | Laravel 13 |
+| --- | :---: | :---: | :---: | :---: |
+| 8.2 | ✅ | ✅ | ✅ | ✅ |
+| 8.3 | ✅ | ✅ | ✅ | ✅ |
+| 8.4 | — | ✅ | ✅ | ✅ |
+| 8.5 | — | — | — | ✅ |
+
+`—` = combination excluded because that Laravel version does not support that PHP version.
 
 Each job runs `pint --test`, `phpstan analyse` (level max) and `phpunit`, plus a dedicated job for
 the lowest supported dependency versions.

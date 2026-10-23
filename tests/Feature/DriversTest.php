@@ -50,6 +50,39 @@ final class DriversTest extends TestCase
         $this->assertSame($first, $second);
     }
 
+    /**
+     * @return array<string, array{string}>
+     */
+    public static function realEngines(): array
+    {
+        return [
+            'dompdf' => ['dompdf'],
+            'mpdf' => ['mpdf'],
+        ];
+    }
+
+    #[DataProvider('realEngines')]
+    public function test_the_paper_comes_from_the_document_and_not_from_the_template(string $driver): void
+    {
+        $html = '<html><head><style>@page { size: A4; }</style></head><body><h1>Hello</h1></body></html>';
+
+        $result = $this->manager()->html($html)->driver($driver)->paper('letter')->render();
+
+        $this->assertSame(1, $this->pageCount($result->bytes));
+        $this->assertStringContainsString('612', $this->mediaBox($result->bytes));
+    }
+
+    #[DataProvider('realEngines')]
+    public function test_it_warns_when_the_template_declares_another_paper(string $driver): void
+    {
+        $html = '<html><head><style>@page { size: A5; }</style></head><body><h1>Hello</h1></body></html>';
+
+        $result = $this->manager()->html($html)->driver($driver)->paper('a4')->render();
+
+        $this->assertNotEmpty($result->warnings);
+        $this->assertStringContainsString('A5', $result->warnings[0]);
+    }
+
     public function test_it_reports_the_driver_of_the_result(): void
     {
         $result = $this->manager()->html('<p>x</p>')->driver('fake')->render();
@@ -165,5 +198,17 @@ final class DriversTest extends TestCase
     {
         $this->assertInstanceOf(FakeDriver::class, $this->manager()->fakeDriver());
         $this->assertSame($this->manager()->fakeDriver(), $this->manager()->fakeDriver());
+    }
+
+    private function pageCount(string $bytes): int
+    {
+        return max(1, preg_match_all('#/Type\s*/Page(?![a-zA-Z])#', $bytes));
+    }
+
+    private function mediaBox(string $bytes): string
+    {
+        return preg_match('#/MediaBox\s*\[([^\]]*)\]#', $bytes, $matches) === 1
+            ? $matches[1]
+            : '';
     }
 }

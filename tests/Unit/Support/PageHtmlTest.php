@@ -6,6 +6,8 @@ namespace Vellum\Tests\Unit\Support;
 
 use PHPUnit\Framework\TestCase;
 use Vellum\Config\Margins;
+use Vellum\Config\Orientation;
+use Vellum\Config\PaperSize;
 use Vellum\Support\PageHtml;
 
 final class PageHtmlTest extends TestCase
@@ -70,5 +72,85 @@ final class PageHtmlTest extends TestCase
         $html = PageHtml::applyFontFamily('<p>plain</p>', 'DejaVu Sans');
 
         $this->assertStringStartsWith('<style>', $html);
+    }
+
+    public function test_it_removes_the_page_size_and_keeps_the_other_properties(): void
+    {
+        $html = '<html><head><style>@page { size: A4; margin: 10mm; }</style></head><body></body></html>';
+
+        $stripped = PageHtml::stripPageSize($html);
+
+        $this->assertStringNotContainsString('size: A4', $stripped);
+        $this->assertStringContainsString('margin: 10mm', $stripped);
+    }
+
+    public function test_it_removes_the_page_rule_when_it_only_declares_the_size(): void
+    {
+        $html = '<html><head><style>@page { size: A4; }</style></head><body></body></html>';
+
+        $this->assertStringNotContainsString('@page', PageHtml::stripPageSize($html));
+    }
+
+    public function test_it_does_not_touch_the_other_size_properties(): void
+    {
+        $html = '<html><head><style>@page { margin: 10mm; } .brand { font-size: 20px; }</style></head><body></body></html>';
+
+        $this->assertStringContainsString('font-size: 20px', PageHtml::stripPageSize($html));
+    }
+
+    public function test_it_lists_the_page_sizes_of_the_document(): void
+    {
+        $html = '<style>@page { size: A4 landscape; } @page :first { size: A5; }</style>';
+
+        $this->assertSame(['A4 landscape', 'A5'], PageHtml::pageSizes($html));
+    }
+
+    public function test_it_detects_the_page_sizes_that_conflict_with_the_document(): void
+    {
+        $this->assertSame(
+            ['Letter'],
+            PageHtml::conflictingPageSizes('<style>@page { size: Letter; }</style>', PaperSize::A4, Orientation::Portrait),
+        );
+
+        $this->assertSame(
+            [],
+            PageHtml::conflictingPageSizes('<style>@page { size: A4; }</style>', PaperSize::A4, Orientation::Portrait),
+        );
+
+        $this->assertSame(
+            [],
+            PageHtml::conflictingPageSizes('<style>@page { size: A4 landscape; }</style>', PaperSize::A4, Orientation::Landscape),
+        );
+
+        $this->assertSame(
+            ['A4'],
+            PageHtml::conflictingPageSizes('<style>@page { size: A4; }</style>', PaperSize::A4, Orientation::Landscape),
+        );
+
+        $this->assertSame(
+            ['A6'],
+            PageHtml::conflictingPageSizes('<style>@page { size: A6; }</style>', PaperSize::A4, Orientation::Portrait),
+        );
+    }
+
+    public function test_it_warns_when_the_template_declares_another_paper(): void
+    {
+        $warnings = [];
+
+        set_error_handler(function (int $severity, string $message) use (&$warnings): bool {
+            $warnings[] = $message;
+
+            return true;
+        });
+
+        try {
+            $stripped = PageHtml::applyPaperSize('<style>@page { size: A5; }</style>', PaperSize::A4, Orientation::Portrait);
+        } finally {
+            restore_error_handler();
+        }
+
+        $this->assertStringNotContainsString('size: A5', $stripped);
+        $this->assertCount(1, $warnings);
+        $this->assertStringContainsString('A5', $warnings[0]);
     }
 }

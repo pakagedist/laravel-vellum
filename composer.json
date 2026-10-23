@@ -22,11 +22,11 @@
     "require": {
         "php": "^8.2",
         "ext-json": "*",
-        "illuminate/console": "^10.0|^11.0|^12.0",
-        "illuminate/filesystem": "^10.0|^11.0|^12.0",
-        "illuminate/http": "^10.0|^11.0|^12.0",
-        "illuminate/support": "^10.0|^11.0|^12.0",
-        "illuminate/view": "^10.0|^11.0|^12.0",
+        "illuminate/console": "^10.0|^11.0|^12.0|^13.0",
+        "illuminate/filesystem": "^10.0|^11.0|^12.0|^13.0",
+        "illuminate/http": "^10.0|^11.0|^12.0|^13.0",
+        "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
+        "illuminate/view": "^10.0|^11.0|^12.0|^13.0",
         "psr/log": "^3.0"
     },
     "require-dev": {
@@ -35,7 +35,7 @@
         "laravel/pint": "^1.14",
         "mpdf/mpdf": "^8.1",
         "nunomaduro/collision": "^8.0",
-        "orchestra/testbench": "^8.0|^9.0|^10.0",
+        "orchestra/testbench": "^8.0|^9.0|^10.0|^11.0",
         "phpstan/phpstan": "^2.0",
         "phpunit/phpunit": "^10.5|^11.0",
         "setasign/fpdi": "^2.6",

@@ -1,24 +1,80 @@
-# Laravel Vellum
+# 📄 Laravel Vellum
 
 > **Una API. Cualquier origen. Cualquier motor. Todas las funcionalidades de conformidad.**
 >
-> Genera un PDF en Laravel desde *cualquier cosa* — una vista Blade, HTML plano, un archivo del
-> disco, una plantilla Twig, una URL remota — y renderízalo con *cualquier motor* — DOMPDF,
-> Chromium (Browsershot), mPDF — sin cambiar una sola línea del código de tu aplicación cuando
-> cambias de motor.
+> Convierte *cualquier cosa* — una vista Blade, HTML plano, un fichero, Twig, una URL — en un PDF
+> con *cualquier motor* — DOMPDF, Chromium (Browsershot), mPDF — sin reescribir tu código.
 >
-> **Vellum** — *el soporte donde se compone el documento*. Tú decides de dónde sale el contenido y
-> con qué motor se compone; Vellum se encarga del resto.
+> **Vellum** — *el soporte donde se compone el documento*. Tú eliges el origen y el motor; Vellum
+> pone el resto.
 
-[![PHP](https://img.shields.io/badge/php-%5E8.2-777bb4?logo=php&logoColor=white)](https://www.php.net/)
-[![Packagist](https://img.shields.io/packagist/v/laravel-vellum/laravel-vellum?label=packagist&logo=packagist)](https://packagist.org/packages/laravel-vellum/laravel-vellum)
-[![Laravel](https://img.shields.io/badge/laravel-10%20%7C%2011%20%7C%2012-ff2d20?logo=laravel&logoColor=white)](https://laravel.com)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
-[![PHPStan](https://img.shields.io/badge/phpstan-level%20max-b8c25c)](https://phpstan.org)
-[![Tests](https://img.shields.io/badge/tests-114%20passed-success)](tests)
-[![Code style](https://img.shields.io/badge/code%20style-pint-ff2d20)](pint.json)
+<p align="center">
+  <img alt="PHP" src="https://img.shields.io/badge/php-%5E8.2-777bb4?logo=php&logoColor=white">
+  <img alt="Laravel" src="https://img.shields.io/badge/laravel-10%20%7C%2011%20%7C%2012%20%7C%2013-ff2d20?logo=laravel&logoColor=white">
+  <img alt="Tests" src="https://img.shields.io/badge/tests-124%20passed-2ea043">
+  <img alt="PHPStan" src="https://img.shields.io/badge/phpstan-level%20max-b8c25c">
+  <img alt="Pint" src="https://img.shields.io/badge/code%20style-pint-ff2d20">
+  <img alt="Licencia" src="https://img.shields.io/badge/license-MIT-3da639">
+</p>
+
+<p align="center">
+  <img alt="5 orígenes" src="https://img.shields.io/badge/%F0%9F%93%A5%20or%C3%ADgenes-5-6366f1">
+  <img alt="4 motores" src="https://img.shields.io/badge/%E2%9A%99%EF%B8%8F%20motores-4-8b5cf6">
+  <img alt="20 combinaciones" src="https://img.shields.io/badge/%F0%9F%A7%A9%20combinaciones-20-ec4899">
+  <img alt="PDF/A-3b" src="https://img.shields.io/badge/PDF%2FA--3b-%E2%9C%93-f59e0b">
+  <img alt="ZUGFeRD" src="https://img.shields.io/badge/ZUGFeRD-Factur--X-10b981">
+  <img alt="Firma PKCS#7" src="https://img.shields.io/badge/firma-PKCS%237-ef4444">
+</p>
 
 **Español** · [English](README.en.md)
+
+> [!NOTE]
+> **Estado:** el paquete todavía no está publicado en Packagist. Se instala como repositorio local
+> (`type: path`); instrucciones en [Instalación](#3-instalación).
+
+---
+
+## ⚡ En 30 segundos
+
+| # | Paso | Acción |
+| :-: | --- | --- |
+| 1️⃣ | **Instala** | Añade el repositorio local y ejecuta `composer update` |
+| 2️⃣ | **Elige motor** | `composer require dompdf/dompdf` (o mPDF / Browsershot) |
+| 3️⃣ | **Renderiza** | `Pdf::view('factura', $datos)->download('factura.pdf')` |
+
+Añade el paquete a tu `composer.json`:
+
+```json
+{
+    "repositories": [
+        { "type": "path", "url": "../laravel-vellum", "options": { "symlink": true } }
+    ],
+    "require": {
+        "laravel-vellum/laravel-vellum": "*@dev"
+    }
+}
+```
+
+```bash
+composer update laravel-vellum/laravel-vellum
+composer require dompdf/dompdf   # o mpdf/mpdf, o spatie/browsershot
+php artisan vendor:publish --tag=pdf-config
+```
+
+```php
+use Vellum\Facades\Pdf;
+
+return Pdf::view('facturas.factura', ['factura' => $factura])
+    ->driver('dompdf')
+    ->paper('a4')
+    ->download('factura.pdf');
+```
+
+> [!TIP]
+> Cambia solo `->driver('dompdf')` por `->driver('mpdf')` o `->driver('browsershot')`: el resto del
+> documento no cambia.
+
+Detalle completo en [Instalación](#3-instalación) y [Primeros pasos](#4-primeros-pasos).
 
 ---
 
@@ -26,23 +82,23 @@
 
 | # | Sección | Qué encontrarás |
 | --- | --- | --- |
-| 1 | [Por qué otro paquete de PDF](#1-por-qué-otro-paquete-de-pdf) | Comparación honesta con los paquetes que ya conoces |
-| 2 | [De un vistazo](#2-de-un-vistazo) | La matriz de capacidades y la arquitectura en una imagen |
-| 3 | [Instalación](#3-instalación) | Composer, motores, configuración, Node/Chromium, Lumen |
-| 4 | [Primeros pasos](#4-primeros-pasos) | Los cinco métodos terminales y la API fluida |
-| 5 | [Dónde vive el paquete en tu aplicación](#5-dónde-vive-el-paquete-en-tu-aplicación) | Mapa archivo por archivo de todo lo que tocas |
-| 6 | [Los orígenes](#6-los-orígenes) | 5 orígenes + el tuyo, con ejemplos reales |
-| 7 | [Los motores](#7-los-motores) | 4 motores + el tuyo, con la librería upstream explicada |
-| 8 | [Referencia de configuración](#8-referencia-de-configuración) | `config/pdf.php` explicado clave por clave |
-| 9 | [Capas y precedencia](#9-capas-y-precedencia) | Exactamente quién gana, y por qué |
-| 10 | [Pipeline de post-procesado](#10-pipeline-de-post-procesado) | Metadatos, XMP, PDF/A-3b, adjuntos, merge, firma |
-| 11 | [Recetas](#11-recetas) | 14 recetas listas para copiar de tareas habituales |
-| 12 | [Extender el paquete](#12-extender-el-paquete) | Origen, motor y procesador propios |
-| 13 | [Errores, warnings y timeouts](#13-errores-warnings-y-timeouts) | El mapa completo de excepciones y las reglas de resiliencia |
-| 14 | [Tests de tu aplicación](#14-tests-de-tu-aplicación) | El driver Fake y el registro de llamadas |
-| 15 | [Estructura del proyecto](#15-estructura-del-proyecto) | Cada archivo de `src/` explicado |
-| 16 | [Desarrollo y CI](#16-desarrollo-y-ci) | Comandos y la matriz |
-| 17 | [Mapa del ecosistema](#17-mapa-del-ecosistema) | Quién hace qué, y cuándo usar qué |
+| 1 | 🧭 [Por qué otro paquete de PDF](#1-por-qué-otro-paquete-de-pdf) | Comparación honesta con los paquetes que ya conoces |
+| 2 | 🧩 [De un vistazo](#2-de-un-vistazo) | La matriz de capacidades y la arquitectura en una imagen |
+| 3 | 📦 [Instalación](#3-instalación) | Repositorio local, motores, configuración, Node/Chromium, Lumen |
+| 4 | 🚀 [Primeros pasos](#4-primeros-pasos) | Los cinco métodos terminales y la API fluida |
+| 5 | 🗂️ [Dónde vive el paquete en tu aplicación](#5-dónde-vive-el-paquete-en-tu-aplicación) | Mapa archivo por archivo de todo lo que tocas |
+| 6 | 📥 [Los orígenes](#6-los-orígenes) | 5 orígenes + el tuyo, con ejemplos reales |
+| 7 | ⚙️ [Los motores](#7-los-motores) | 4 motores + el tuyo, con la librería upstream explicada |
+| 8 | 🧰 [Referencia de configuración](#8-referencia-de-configuración) | `config/pdf.php` explicado clave por clave |
+| 9 | 🪄 [Capas y precedencia](#9-capas-y-precedencia) | Exactamente quién gana, y por qué |
+| 10 | 🧪 [Pipeline de post-procesado](#10-pipeline-de-post-procesado) | Metadatos, XMP, PDF/A-3b, adjuntos, merge, firma |
+| 11 | 🍳 [Recetas](#11-recetas) | 14 recetas listas para copiar de tareas habituales |
+| 12 | 🧱 [Extender el paquete](#12-extender-el-paquete) | Origen, motor y procesador propios |
+| 13 | 🚨 [Errores, warnings y timeouts](#13-errores-warnings-y-timeouts) | El mapa completo de excepciones y las reglas de resiliencia |
+| 14 | ✅ [Tests de tu aplicación](#14-tests-de-tu-aplicación) | El driver Fake y el registro de llamadas |
+| 15 | 🗺️ [Estructura del proyecto](#15-estructura-del-proyecto) | Cada archivo de `src/` explicado |
+| 16 | 🛠️ [Desarrollo y CI](#16-desarrollo-y-ci) | Comandos y la matriz |
+| 17 | 🌍 [Mapa del ecosistema](#17-mapa-del-ecosistema) | Quién hace qué, y cuándo usar qué |
 
 ---
 
@@ -60,11 +116,35 @@ Hay paquetes excelentes ahí fuera. Casi todos te atan a **un solo motor**:
 **Este paquete es la capa superior a todos ellos.** Mantiene la *forma* de los paquetes que ya
 conoces (una facade, un builder fluido, `->download()`) y añade las tres cosas que les faltan:
 
-1. **Un contrato de origen.** Blade, HTML, fichero, Twig, URL — y el tuyo — detrás de una interfaz.
-2. **Un contrato de motor.** Los motores son dependencias *opcionales*, nunca requisitos. Si falta
-   el motor ⇒ una excepción clara que te dice qué `composer require` ejecutar.
-3. **Un pipeline de post-procesado.** PDF/A-3b, XMP, adjuntos ZUGFeRD/Factur-X, merge y firmas
-   funcionan **sobre los bytes**, así que funcionan con todos los motores — incluido el fake.
+| | Superpoder | Qué te da |
+| :-: | --- | --- |
+| 📥 | **Un contrato de origen** | Blade, HTML, fichero, Twig, URL — y el tuyo — detrás de una interfaz. |
+| ⚙️ | **Un contrato de motor** | Los motores son dependencias *opcionales*. Si falta ⇒ una excepción con el `composer require` exacto. |
+| 🧪 | **Un pipeline de post-procesado** | PDF/A-3b, XMP, adjuntos ZUGFeRD/Factur-X, merge y firmas funcionan **sobre los bytes**, con todos los motores — incluido el fake. |
+
+```mermaid
+flowchart LR
+    A["📥 Origen<br/><small>Blade · HTML · Fichero · Twig · URL</small>"] --> B["🧱 PdfBuilder<br/><small>API fluida e inmutable</small>"]
+    B --> C["🪄 ConfigResolver<br/><small>3 capas tipadas</small>"]
+    C --> D["⚙️ Driver<br/><small>dompdf · browsershot · mpdf · fake</small>"]
+    D --> E["🧪 Pipeline<br/><small>XMP · PDF/A · adjuntos · merge · firma</small>"]
+    E --> F["📦 PdfResult<br/><small>bytes · save · stream · download</small>"]
+
+    classDef source fill:#eef2ff,stroke:#6366f1,stroke-width:2px,color:#312e81;
+    classDef builder fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px,color:#4c1d95;
+    classDef driver fill:#ecfeff,stroke:#06b6d4,stroke-width:2px,color:#164e63;
+    classDef pipeline fill:#fff7ed,stroke:#f59e0b,stroke-width:2px,color:#78350f;
+    classDef result fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#064e3b;
+
+    class A source;
+    class B,C builder;
+    class D driver;
+    class E pipeline;
+    class F result;
+```
+
+<details>
+<summary>🧱 El mismo diagrama en texto (para terminal o visores sin Mermaid)</summary>
 
 ```
         ┌───────────────────── Vellum\Facades\Pdf ─────────────────────┐
@@ -82,56 +162,101 @@ conoces (una facade, un builder fluido, `->download()`) y añade las tres cosas 
    Orígenes: Blade · HTML · Fichero · Twig · URL · propios
 ```
 
+</details>
+
 ---
 
 ## 2. De un vistazo
 
-### 2.1 La matriz 5 orígenes × 4 motores
+### 2.1 📥 La matriz 5 orígenes × 4 motores
 
-Cada origen funciona con cada motor. **25 combinaciones de serie**, más las tuyas.
+Cada origen funciona con cada motor. **20 combinaciones de serie** (5 orígenes × 4 motores), más
+las que añadas con tus propios contratos.
 
 | | `dompdf` | `browsershot` | `mpdf` | `fake` |
 | --- | :---: | :---: | :---: | :---: |
-| `blade` (vista Blade) | ✅ | ✅ | ✅ | ✅ |
-| `html` (string HTML) | ✅ | ✅ | ✅ | ✅ |
-| `file` (fichero local) | ✅ | ✅ | ✅ | ✅ |
-| `twig` (plantilla Twig) | ✅ | ✅ | ✅ | ✅ |
-| `url` (URL remota) | ✅ | ✅ | ✅ | ✅ |
-| `custom` (tu `Source`) | ✅ | ✅ | ✅ | ✅ |
+| 📄 `blade` (vista Blade) | ✅ | ✅ | ✅ | ✅ |
+| 🧾 `html` (string HTML) | ✅ | ✅ | ✅ | ✅ |
+| 📁 `file` (fichero local) | ✅ | ✅ | ✅ | ✅ |
+| 🌿 `twig` (plantilla Twig) | ✅ | ✅ | ✅ | ✅ |
+| 🌐 `url` (URL remota) | ✅ | ✅ | ✅ | ✅ |
+| 🧩 `custom` (tu `Source`) | ✅ | ✅ | ✅ | ✅ |
 
-### 2.2 Qué puede hacer el paquete, y dónde vive cada funcionalidad
+### 2.2 🧰 Qué puede hacer el paquete, y dónde vive cada funcionalidad
 
-| Capacidad | API | Implementada en | Notas |
-| --- | --- | --- | --- |
-| Elegir motor por documento | `->driver('mpdf')` | `PdfBuilder::driver()` | Anula el driver por defecto de la config. |
-| Tamaño/orientación de página | `->paper('a4', 'landscape')` | `Config\PaperSize`, `Config\Orientation` | 8 tamaños × 2 orientaciones, validados. |
-| Fuentes (familia + fichero local) | `->font('Inter', '/ruta.ttf')` | `Support\PageHtml` | Inyecta `@font-face` en el HTML. |
-| Márgenes (mm) | `->margins(10, 10, 10, 10)` | `Config\Margins` | `@page` en DOMPDF, `SetMargins()` en mPDF, opciones Puppeteer en Chromium. |
-| Opciones específicas del motor | `->option('isPhpEnabled', false)` | `Config\DocumentOptions` | Se pasan tal cual al motor. |
-| Metadatos del documento | `->metadata([...])` | `Pipeline\Processors\SetDocumentMetadata` | Título, autor, asunto, keywords, creator, custom. |
-| Paquete XMP | `->xmp([...])`, `->xmpNamespace()` | `Pipeline\Processors\EmbedXmpMetadata` | Dublin Core + namespaces propios. |
-| PDF/A-3b | `->pdfa('/ruta/sRGB2014.icc')` | `Pipeline\Processors\MarkPdfA3b` | Output intent + metadatos `pdfaid`. |
-| Ficheros adjuntos | `->embedFile($ruta, $nombre, 'Data', 'text/xml')` | `Pipeline\Processors\EmbedFile` | `/Filespec` + `/EmbeddedFile`. |
-| ZUGFeRD / Factur-X | `->zugferd('/tmp/factura.xml')` | `zugferd()` + los dos processors anteriores | Atajo sobre XMP + PDF/A + adjunto. |
-| Unir PDFs | `->merge('/tmp/portada.pdf')` | `Pipeline\Processors\MergePdfs` | Usa [`setasign/fpdi`](https://github.com/setasign/FPDI). |
-| Firma digital | `->sign('/cert.p12', 'secreto')` | `Pipeline\Processors\AddSignature` | PKCS#7 detached, CMS/PKCS#7 DER. |
-| Post-procesado propio | `->process(new MiProcessor())` | `Pipeline\Pipeline` | También registrable globalmente en la config. |
-| Protección por timeout | `->timeout(15)` | `Support\RenderGuard` | Límite duro, nunca un render infinito. |
-| Recolección de warnings | `->strictWarnings()` | `Support\WarningCollector` | Los warnings del motor se registran, nunca se silencian. |
-| Stream / descarga / guardado | `->stream()`, `->download()`, `->save()` | `Support\PdfResult` | Respuestas estándar de Laravel. |
-| Dobles de test deterministas | `->driver('fake')` | `Drivers\FakeDriver` | Bytes PDF válidos, cero motores. |
+| | Capacidad | API | Implementada en | Notas |
+| :-: | --- | --- | --- | --- |
+| 🎯 | Elegir motor por documento | `->driver('mpdf')` | `PdfBuilder::driver()` | Anula el driver por defecto de la config. |
+| 📐 | Tamaño/orientación de página | `->paper('a4', 'landscape')` | `Config\PaperSize`, `Config\Orientation` | 8 tamaños × 2 orientaciones, validados. El papel siempre sale de aquí, no del CSS. |
+| 🔤 | Fuentes (familia + fichero local) | `->font('Inter', '/ruta.ttf')` | `Support\PageHtml` | Inyecta `@font-face` en el HTML. |
+| 📏 | Márgenes (mm) | `->margins(10, 10, 10, 10)` | `Config\Margins` | `@page` en DOMPDF, `SetMargins()` en mPDF, opciones Puppeteer en Chromium. |
+| 🧰 | Opciones específicas del motor | `->option('isPhpEnabled', false)` | `Config\DocumentOptions` | Se pasan tal cual al motor. |
+| 🏷️ | Metadatos del documento | `->metadata([...])` | `Pipeline\Processors\SetDocumentMetadata` | Título, autor, asunto, keywords, creator, custom. |
+| 🧾 | Paquete XMP | `->xmp([...])`, `->xmpNamespace()` | `Pipeline\Processors\EmbedXmpMetadata` | Dublin Core + namespaces propios. |
+| 🗄️ | PDF/A-3b | `->pdfa('/ruta/sRGB2014.icc')` | `Pipeline\Processors\MarkPdfA3b` | Output intent + metadatos `pdfaid`. |
+| 📎 | Ficheros adjuntos | `->embedFile($ruta, $nombre, 'Data', 'text/xml')` | `Pipeline\Processors\EmbedFile` | `/Filespec` + `/EmbeddedFile`. |
+| 🇪🇺 | ZUGFeRD / Factur-X | `->zugferd('/tmp/factura.xml')` | `zugferd()` + los dos processors anteriores | Atajo sobre XMP + PDF/A + adjunto. |
+| 🔗 | Unir PDFs | `->merge('/tmp/portada.pdf')` | `Pipeline\Processors\MergePdfs` | Usa [`setasign/fpdi`](https://github.com/setasign/FPDI). |
+| ✍️ | Firma digital | `->sign('/cert.p12', 'secreto')` | `Pipeline\Processors\AddSignature` | PKCS#7 detached, CMS/PKCS#7 DER. |
+| 🧩 | Post-procesado propio | `->process(new MiProcessor())` | `Pipeline\Pipeline` | También registrable globalmente en la config. |
+| ⏱️ | Protección por timeout | `->timeout(15)` | `Support\RenderGuard` | Límite duro, nunca un render infinito. |
+| ⚠️ | Recolección de warnings | `->strictWarnings()` | `Support\WarningCollector` | Los warnings del motor se registran, nunca se silencian. |
+| 📤 | Stream / descarga / guardado | `->stream()`, `->download()`, `->save()` | `Support\PdfResult` | Respuestas estándar de Laravel. |
+| 🧪 | Dobles de test deterministas | `->driver('fake')` | `Drivers\FakeDriver` | Bytes PDF válidos, cero motores. |
+
+### 2.3 🧭 Elige tu motor en 10 segundos
+
+| Si necesitas… | Usa | Por qué |
+| --- | :-: | --- |
+| 🧾 Facturas e informes simples, sin instalar Node | `dompdf` | PHP puro, cero infraestructura. |
+| 🌐 Tailwind, CSS Grid, web fonts o pixel-perfect | `browsershot` | Chromium renderiza lo que ves en el navegador. |
+| 🌍 Árabe, hebreo, CJK, RTL o generar muchos PDFs | `mpdf` | Unicode y bidireccionalidad de serie. |
+| 🧪 Tests rápidos y deterministas | `fake` | PDF válido, sin motor ni navegador. |
+
+> [!TIP]
+> El motor se puede fijar en la config **o** por documento con `->driver()`. Cambiar de motor no
+> cambia ni el origen ni la plantilla.
 
 ---
 
 ## 3. Instalación
 
-### 3.1 El paquete en sí
+| Requisito | Versión |
+| --- | --- |
+| PHP | `^8.2` (probado en 8.2, 8.3, 8.4 y 8.5) |
+| Laravel | 10, 11, 12 o 13; también Lumen |
+| `ext-json` | obligatoria |
+| `ext-openssl` | solo si vas a firmar documentos |
+| `ext-curl` | solo si vas a usar el origen `url` |
+| Node.js + Chromium | solo para el motor `browsershot` |
 
-```bash
-composer require laravel-vellum/laravel-vellum
+### 3.1 📦 El paquete en sí
+
+El paquete **todavía no está publicado en Packagist**, así que se instala como repositorio local de
+Composer. Añade el repositorio y el requisito a tu `composer.json`:
+
+```json
+{
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../laravel-vellum",
+            "options": { "symlink": true }
+        }
+    ],
+    "require": {
+        "laravel-vellum/laravel-vellum": "*@dev"
+    }
+}
 ```
 
-Eso es todo. El service provider (`Vellum\PdfServiceProvider`) y el alias de la facade
+Ajusta `url` si el paquete está en otra ruta y actualiza:
+
+```bash
+composer update laravel-vellum/laravel-vellum
+```
+
+El service provider (`Vellum\PdfServiceProvider`) y el alias de la facade
 (`Pdf` → `Vellum\Facades\Pdf`) se **descubren solos** mediante la sección `extra.laravel` del
 `composer.json`.
 
@@ -145,7 +270,7 @@ php artisan vendor:publish --tag=pdf-config
 Published: config/pdf.php
 ```
 
-### 3.2 Los motores son opcionales — instala solo lo que uses
+### 3.2 🔌 Los motores son opcionales — instala solo lo que uses
 
 El paquete en sí **no depende de ningún motor de render**. Elige uno (o varios):
 
@@ -166,7 +291,7 @@ composer require setasign/fpdi        # post-procesador de merge (arrastra setas
 Si eliges un motor cuyo motor no está instalado, el paquete **no falla en silencio**: lanza
 `DriverNotSupportedException` con el comando `composer require` exacto que necesitas.
 
-### 3.3 Setup de Browsershot / Chromium (la única instalación no trivial)
+### 3.3 🌐 Setup de Browsershot / Chromium (la única instalación no trivial)
 
 `spatie/browsershot` maneja Puppeteer desde Node.js:
 
@@ -202,7 +327,11 @@ son solo el fallback:
 ],
 ```
 
-### 3.4 Lumen
+> [!TIP]
+> La configuración publicada ya trae `node_modules_path` apuntando a `base_path('node_modules')`:
+> si instalas Puppeteer en la aplicación (`npm install puppeteer`), el driver lo encuentra solo.
+
+### 3.4 🧩 Lumen
 
 Lumen **no** lee la sección `extra.laravel` del `composer.json`, así que registra el provider a mano
 en `bootstrap/app.php`:
@@ -279,7 +408,7 @@ final class InvoiceService
 
 Esta es la lista completa de ficheros que normalmente creas o tocas. Nada más cambia.
 
-### 5.1 El mapa de ficheros
+### 5.1 🗂️ El mapa de ficheros
 
 | Fichero | Papel | Qué escribes |
 | --- | --- | --- |
@@ -294,7 +423,7 @@ Esta es la lista completa de ficheros que normalmente creas o tocas. Nada más c
 | `tests/Feature/InvoicePdfTest.php` | Tests sin motores | `->driver('fake')` + `Pdf::fakeDriver()->calls()`. |
 | `resources/pdf/sRGB2014.icc` | *(opcional)* Perfil de color PDF/A | El perfil ICC que usa `->pdfa()`. |
 
-### 5.2 Una ruta
+### 5.2 🛣️ Una ruta
 
 ```php
 // routes/web.php
@@ -308,7 +437,7 @@ Route::get('/facturas/{factura}/pdf', function (Invoice $factura) {
 })->name('facturas.pdf');
 ```
 
-### 5.3 Un controlador
+### 5.3 🎛️ Un controlador
 
 ```php
 // app/Http/Controllers/InvoiceController.php
@@ -328,7 +457,7 @@ final class InvoiceController extends Controller
 }
 ```
 
-### 5.4 Un servicio dedicado (recomendado si lo reutilizas)
+### 5.4 🧰 Un servicio dedicado (recomendado si lo reutilizas)
 
 ```php
 // app/Services/Pdf/InvoicePdf.php
@@ -362,7 +491,7 @@ InvoicePdf::class, fn ($s) => $s->build($invoice)->download('factura.pdf');
 InvoicePdf::class, fn ($s) => $s->build($invoice)->save($ruta);
 ```
 
-### 5.5 La plantilla Blade
+### 5.5 📄 La plantilla Blade
 
 La plantilla es HTML plano. Usa las mismas vistas que ya tienes:
 
@@ -374,7 +503,7 @@ La plantilla es HTML plano. Usa las mismas vistas que ya tienes:
     <meta charset="utf-8">
     <title>Factura {{ $factura->numero }}</title>
     <style>
-        @page { size: A4; }
+        /* El papel y la orientación los decide el documento (->paper()), no el CSS. */
         body { font-family: "DejaVu Sans", sans-serif; font-size: 12px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { border-bottom: 1px solid #ddd; padding: 6px; text-align: left; }
@@ -400,11 +529,21 @@ La plantilla es HTML plano. Usa las mismas vistas que ya tienes:
 </html>
 ```
 
-> **Tip:** el paquete inyecta `<style>@page{margin:…}</style>` (DOMPDF), `font-family` y las reglas
+> [!TIP]
+> El paquete inyecta `<style>@page{margin:…}</style>` (DOMPDF), `font-family` y las reglas
 > `@font-face` por ti cuando llamas a `->margins()` / `->font()`. No hace falta que escribas
-> `@page` — pero puedes hacerlo, y para DOMPDF manda el tuyo.
+> `@page`.
+>
+> [!IMPORTANT]
+> **El papel siempre sale del documento** (`->paper()`, `->orientation()` o `config/pdf.php`),
+> nunca de la plantilla. Las declaraciones `@page { size: … }` que dejes en el CSS se **descartan**
+> antes de llegar al motor, porque cada motor las lee de forma distinta: mPDF interpreta un
+> nombre de papel como una página de tamaño cero (y el maquetado se rompe), DOMPDF deja que la
+> plantilla sustituya al documento y Chromium las ignora. Si una plantilla declara un tamaño
+> que **no** coincide con el configurado, el motor emite un aviso —visible en
+> `$resultado->warnings`— en lugar de cambiar el papel en silencio.
 
-### 5.6 Registrar un motor propio (service provider)
+### 5.6 🔌 Registrar un motor propio (service provider)
 
 ```php
 // app/Providers/AppServiceProvider.php
@@ -420,7 +559,7 @@ final class AppServiceProvider extends ServiceProvider
 }
 ```
 
-### 5.7 Tests
+### 5.7 ✅ Tests
 
 ```php
 // tests/Feature/InvoicePdfTest.php
@@ -458,7 +597,7 @@ Pdf::url('https://example.com/factura');               // URL remota
 Pdf::from(new MiSourcePersonalizado());                 // el tuyo
 ```
 
-### 6.1 `blade` — vistas Blade
+### 6.1 📄 `blade` — vistas Blade
 
 **Para qué sirve:** todos los documentos que ya viven en tu aplicación: facturas, contratos,
 informes, etiquetas. Usa el *mismo* view factory que las respuestas HTTP, así que los componentes,
@@ -480,9 +619,10 @@ return Pdf::view('facturas.factura', [
 | Error de render | Envuelto en `SourceNotFoundException` con el mensaje original. |
 | Motor propio | `Pdf::from(BladeSource::make($view, $data, 'php'))` fuerza el motor PHP. |
 
+> [!NOTE]
 > `Illuminate\View` es un requisito duro del paquete (`illuminate/view` está en `require`).
 
-### 6.2 `html` — HTML plano
+### 6.2 🧾 `html` — HTML plano
 
 **Para qué sirve:** HTML construido al vuelo, HTML que viene de un CMS o de una API, o una
 plantilla compilada por otro sistema.
@@ -495,7 +635,7 @@ $bytes = Pdf::html($html)->paper('a5')->bytes();
 
 Sin intermediarios: el string se usa tal cual.
 
-### 6.3 `file` — fichero local
+### 6.3 📁 `file` — fichero local
 
 **Para qué sirve:** plantillas HTML estáticas que se distribuyen con la aplicación, informes
 exportados, o ficheros generados por otro proceso.
@@ -509,7 +649,7 @@ Pdf::file('file:///var/www/exports/informe.html');      // el prefijo file:// se
 Las rutas relativas se resuelven contra `base_path()`, así que el mismo código funciona en todos los
 entornos. Los ficheros ilegibles lanzan `SourceNotFoundException::missingFile()`.
 
-### 6.4 `twig` — plantillas Twig
+### 6.4 🌿 `twig` — plantillas Twig
 
 **Para qué sirve:** equipos que vienen de Symfony, o proyectos que quieren un motor de plantillas
 sin dependencias de Laravel. Usa [`twig/twig`](https://github.com/twigphp/Twig) (~8.4k ⭐, BSD-3).
@@ -547,7 +687,7 @@ configuradas, en orden. Las plantillas inexistentes lanzan `SourceNotFoundExcept
 un error de Twig en runtime se envuelve con el mensaje original. `twig/twig` es una dependencia
 opcional: sin ella obtienes `SourceNotFoundException::missingLibrary('twig/twig', 'twig')`.
 
-### 6.5 `url` — URL remota
+### 6.5 🌐 `url` — URL remota
 
 **Para qué sirve:** imprimir una página web, una factura alojada en otro sistema o el recibo de un
 portal.
@@ -580,10 +720,11 @@ Detalles de implementación (todos configurables en `config/pdf.php` → `source
 ],
 ```
 
+> [!NOTE]
 > `ext-curl` es necesario para este origen; sin él obtienes
 > `SourceNotFoundException::missingLibrary('ext-curl', 'url')`.
 
-### 6.6 Escribir tu propio origen
+### 6.6 🧩 Escribir tu propio origen
 
 ```php
 use Vellum\Config\ResolvedConfig;
@@ -639,11 +780,12 @@ Pdf::html('<p>x</p>')->driver('mpdf');
 | `mpdf` | [`mpdf/mpdf`](https://github.com/mpdf/mpdf) (~4.7k ⭐, v8.3.1) | **GPL-2.0** ⚠️ | `composer require mpdf/mpdf` | UTF-8, idiomas RTL, códigos de barras, generación masiva |
 | `fake` | *(integrado)* | MIT | — | Tests y CI sin motores |
 
-> ⚠️ **Nota de licencia:** mPDF es GPL-2.0 (copyleft) y DOMPDF es LGPL-2.1. Si distribuyes una
+> [!WARNING]
+> **Licencias:** mPDF es GPL-2.0 (copyleft) y DOMPDF es LGPL-2.1. Si distribuyes una
 > aplicación de código cerrado, lee esas licencias: que el *wrapper* sea MIT no cambia los términos
 > del motor. `browsershot` (MIT) no tiene esa restricción.
 
-### 7.1 `dompdf` — el motor PHP puro
+### 7.1 🐘 `dompdf` — el motor PHP puro
 
 **Upstream, en PHP puro:**
 
@@ -719,7 +861,7 @@ locales, UTF-8, bordes, tablas, formularios.
 **Qué no soporta:** JavaScript, CSS Grid, custom properties, flexbox completo, documentos pesados
 (es lento con miles de elementos).
 
-### 7.2 `browsershot` — Chromium vía Puppeteer
+### 7.2 🌐 `browsershot` — Chromium vía Puppeteer
 
 **Upstream, en PHP puro:**
 
@@ -781,7 +923,7 @@ Si no se indican, caen a `BROWSERSHOT_NODE_PATH`, `BROWSERSHOT_NPM_PATH`,
 **Trade-offs:** la mayor fidelidad, pero necesita Node.js + Chromium en tu imagen de runtime, es más
 lento y consume mucha más memoria que los motores PHP.
 
-### 7.3 `mpdf` — rápido y centrado en Unicode
+### 7.3 🌍 `mpdf` — rápido y centrado en Unicode
 
 **Upstream, en PHP puro:**
 
@@ -824,6 +966,12 @@ Traducción que hace el driver:
 | `->option('tempDir', …)` | constructor `tempDir` |
 | `->option('fontDir', …)` | constructor `fontDir` |
 
+> [!WARNING]
+> mPDF no lee el tamaño de página del CSS (`@page { size: … }`): un nombre de papel se
+> interpreta como una página de tamaño cero y el maquetado se rompe. El driver descarta esa
+> declaración y el papel sale del constructor (`format` + `orientation`), que es lo que
+> garantiza que el documento tenga el mismo tamaño en todos los motores.
+
 Todas las demás claves del constructor de mPDF también funcionan (`mode`, `format`,
 `default_font_size`, `margin_*`, `tempDir`, `fontDir`, `fontdata`, `allow_charset_conversion`,
 `ignore_invalid_utf8`, `autoScriptToLang`, `autoLangToFont`, `autoArabic`, `autoVietnamese`,
@@ -832,13 +980,14 @@ Todas las demás claves del constructor de mPDF también funcionan (`mode`, `for
 `aliasNbPg`, `defaultCSS`, `curlTimeout`, `debug`, `showImageErrors`, `whitelistStreamWrappers`,
 `exposeVersion`, …).
 
+> [!NOTE]
 > El paquete siempre aplica los márgenes con `SetMargins()`, por lo que las claves `margin_*` del
 > constructor de mPDF quedan sobrescritas por `->margins()`.
 
 **Trade-offs:** consume mucha memoria (mantiene el documento entero en memoria), necesita un
 `tempDir` escribible y su licencia **GPL-2.0** importa en productos de código cerrado.
 
-### 7.4 `fake` — el doble de test
+### 7.4 🧪 `fake` — el doble de test
 
 **Para qué sirve:** tests unitarios y funcionales que no deben depender de un navegador, una caché
 de fuentes o una librería nativa — y bytes deterministas para comparar.
@@ -863,7 +1012,7 @@ $calls = Pdf::fakeDriver()->calls();
 Pdf::fakeDriver()->reset();
 ```
 
-### 7.5 Escribir tu propio motor
+### 7.5 🧱 Escribir tu propio motor
 
 ```php
 use Vellum\Config\ResolvedConfig;
@@ -1004,7 +1153,7 @@ return [
 ];
 ```
 
-### 8.1 Cada clave, explicada
+### 8.1 🔑 Cada clave, explicada
 
 | Clave | Tipo | Por defecto | Significado |
 | --- | --- | --- | --- |
@@ -1031,7 +1180,7 @@ return [
 | `logging.channel` | `?string` | `null` | Canal de log; `null` = el canal por defecto de la aplicación. |
 | `logging.level` | `string` | `'info'` | Nivel declarado para los eventos del paquete. El paquete emite `info` (render) y `warning` (warnings del motor); fija el nivel mínimo del canal en `config/logging.php`. |
 
-### 8.2 Tipado estricto, nunca conversiones silenciosas
+### 8.2 🛡️ Tipado estricto, nunca conversiones silenciosas
 
 Cada valor se lee con lectores tipados. Un tipo incorrecto lanza `InvalidConfigurationException`
 en vez de convertirse a la fuerza:
@@ -1058,6 +1207,30 @@ y los strings de booleanos bien conocidos que se listan arriba.
 
 Tres capas, un ganador:
 
+```mermaid
+flowchart TB
+    subgraph CONFIG["config/pdf.php"]
+        G["🌍 defaults globales"]
+        D["🔧 defaults del driver"]
+    end
+    O["✍️ overrides del documento<br/><small>->paper() · ->option() · ->driver()</small>"]
+
+    G --> R["🪄 ResolvedConfig<br/><small>configuración final e inmutable</small>"]
+    D --> R
+    O --> R
+    R --> P["📄 Documento renderizado"]
+
+    classDef config fill:#eef2ff,stroke:#6366f1,stroke-width:2px,color:#312e81;
+    classDef override fill:#fef3c7,stroke:#f59e0b,stroke-width:2px,color:#78350f;
+    classDef resolved fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#064e3b;
+    class G,D config;
+    class O override;
+    class R,P resolved;
+```
+
+<details>
+<summary>🧱 La precedencia en texto</summary>
+
 ```
         config/pdf.php                 config/pdf.php            tu código
         'defaults'                     'drivers.<nombre>'        ->paper(), ->option()...
@@ -1066,6 +1239,8 @@ Tres capas, un ganador:
                              ▼                                          ▼
               defaults globales  <  defaults del driver  <  overrides del documento
 ```
+
+</details>
 
 | Ajuste | Global | Driver | Documento |
 | --- | :---: | :---: | :---: |
@@ -1096,10 +1271,15 @@ que PDF/A, XMP, adjuntos, merge y firmas funcionen con *todos* los motores — i
 
 El orden es fijo e intencionado:
 
-```
-processors globales (config/pdf.php)
-   → metadata → XMP / PDF-A-3b → ficheros adjuntos → merge
-   → tus processors (->process()) → firma
+```mermaid
+flowchart LR
+    R["📄 render()"] --> M["🏷️ /Info"] --> X["🧾 XMP"] --> A["🗄️ PDF/A-3b"]
+    A --> E["📎 Adjuntos"] --> G["🔗 Merge"] --> P["🧩 Tus processors"] --> S["✍️ Firma"] --> O["📦 PDF final"]
+
+    classDef step fill:#f5f3ff,stroke:#8b5cf6,stroke-width:2px,color:#4c1d95;
+    classDef end fill:#ecfdf5,stroke:#10b981,stroke-width:2px,color:#064e3b;
+    class R,M,X,A,E,G,P,S step;
+    class O end;
 ```
 
 | Paso | Processor | Qué escribe |
@@ -1113,7 +1293,7 @@ processors globales (config/pdf.php)
 | 5 | *tu* `Processor` | Lo que quieras. |
 | 6 | `AddSignature` | Diccionario `/Sig` + `/ByteRange` + firma PKCS#7 detached. |
 
-### 10.1 Metadatos
+### 10.1 🏷️ Metadatos
 
 ```php
 Pdf::view('facturas.factura')
@@ -1139,7 +1319,7 @@ custom** — no existe un array `custom` anidado.
 El diccionario `/Info` y el paquete XMP se escriben desde la misma fuente de verdad, así que nunca
 se contradicen.
 
-### 10.2 XMP
+### 10.2 🧾 XMP
 
 ```php
 Pdf::view('informes.mensual')
@@ -1152,7 +1332,7 @@ Pdf::view('informes.mensual')
     ->download();
 ```
 
-### 10.3 PDF/A-3b
+### 10.3 🗄️ PDF/A-3b
 
 ```php
 Pdf::view('facturas.factura')
@@ -1175,11 +1355,12 @@ Dónde conseguir el perfil ICC: `sRGB2014.icc` lo distribuyen la PDF Association
 verapdf --flavour pdfa-3b factura.pdf
 ```
 
+> [!IMPORTANT]
 > Sin perfil ICC el `/OutputIntent` **no** se escribe: la identificación `pdfaid` sí se añade, pero
 > un validador PDF/A-3b estricto señalará que falta el output intent. Pasa siempre un perfil para
 > documentos de archivo.
 
-### 10.4 Ficheros adjuntos y ZUGFeRD / Factur-X
+### 10.4 📎 Ficheros adjuntos y ZUGFeRD / Factur-X
 
 ```php
 // Adjunto genérico
@@ -1215,7 +1396,7 @@ visible. (`Data` significa adjunto normal, `Source` significa documento original
 > [`horstoeko/zugferd`](https://github.com/horstoeko/zugferd) (~439 ⭐, MIT) o
 > [`easybill/zugferd-php`](https://github.com/easybill/zugferd-php) (~103 ⭐, MIT).
 
-### 10.5 Unir PDFs
+### 10.5 🔗 Unir PDFs
 
 ```php
 Pdf::view('facturas.factura')
@@ -1248,7 +1429,7 @@ $pdf->Output();
 > **campos de formulario interactivos** de los documentos unidos — FPDI importa solo el *aspecto*
 > de la página.
 
-### 10.6 Firmar
+### 10.6 ✍️ Firmar
 
 ```php
 Pdf::view('facturas.factura')
@@ -1276,7 +1457,7 @@ Verifícala tú mismo:
 openssl smime -verify -inform DER -in signature.der -content factura.pdf -noverify
 ```
 
-### 10.7 Processors propios
+### 10.7 🧩 Processors propios
 
 ```php
 use Vellum\Contracts\Processor;
@@ -1323,7 +1504,7 @@ preparar el documento para los específicos.
 ## 11. Recetas
 
 <details open>
-<summary><b>1 · Una factura simple, sin infraestructura</b></summary>
+<summary><b>1 · 🧾 Una factura simple, sin infraestructura</b></summary>
 
 ```php
 return Pdf::view('facturas.factura', ['factura' => $factura])
@@ -1334,7 +1515,7 @@ return Pdf::view('facturas.factura', ['factura' => $factura])
 </details>
 
 <details>
-<summary><b>2 · Un dashboard Tailwind impreso a PDF</b></summary>
+<summary><b>2 · 📊 Un dashboard Tailwind impreso a PDF</b></summary>
 
 ```php
 return Pdf::view('informes.dashboard', ['metricas' => $metricas])
@@ -1348,7 +1529,7 @@ return Pdf::view('informes.dashboard', ['metricas' => $metricas])
 </details>
 
 <details>
-<summary><b>3 · Una factura multilengüe (árabe / hebreo / CJK)</b></summary>
+<summary><b>3 · 🌍 Una factura multilengüe (árabe / hebreo / CJK)</b></summary>
 
 ```php
 return Pdf::view('facturas.factura', ['factura' => $factura])
@@ -1361,7 +1542,7 @@ return Pdf::view('facturas.factura', ['factura' => $factura])
 </details>
 
 <details>
-<summary><b>4 · Una factura híbrida ZUGFeRD 2.1</b></summary>
+<summary><b>4 · 🇪🇺 Una factura híbrida ZUGFeRD 2.1</b></summary>
 
 ```php
 // 1. construye el XML con atgp/factur-x u horstoeko/zugferd
@@ -1377,7 +1558,7 @@ return Pdf::view('facturas.factura', ['factura' => $factura])
 </details>
 
 <details>
-<summary><b>5 · Una copia de archivo en PDF/A-3b</b></summary>
+<summary><b>5 · 🗄️ Una copia de archivo en PDF/A-3b</b></summary>
 
 ```php
 return Pdf::view('facturas.factura', ['factura' => $factura])
@@ -1389,7 +1570,7 @@ return Pdf::view('facturas.factura', ['factura' => $factura])
 </details>
 
 <details>
-<summary><b>6 · Un contrato con portada y condiciones</b></summary>
+<summary><b>6 · 📚 Un contrato con portada y condiciones</b></summary>
 
 ```php
 return Pdf::view('contratos.contrato', ['contrato' => $contrato])
@@ -1402,7 +1583,7 @@ return Pdf::view('contratos.contrato', ['contrato' => $contrato])
 </details>
 
 <details>
-<summary><b>7 · Un albarán firmado</b></summary>
+<summary><b>7 · ✍️ Un albarán firmado</b></summary>
 
 ```php
 return Pdf::view('albaranes.albaran', ['albaran' => $albaran])
@@ -1416,7 +1597,7 @@ return Pdf::view('albaranes.albaran', ['albaran' => $albaran])
 </details>
 
 <details>
-<summary><b>8 · Imprimir una página web</b></summary>
+<summary><b>8 · 🖨️ Imprimir una página web</b></summary>
 
 ```php
 return Pdf::url('https://billing.example.com/factura/42')
@@ -1426,7 +1607,7 @@ return Pdf::url('https://billing.example.com/factura/42')
 </details>
 
 <details>
-<summary><b>9 · Devolver el PDF en base64 en una API JSON</b></summary>
+<summary><b>9 · 🔌 Devolver el PDF en base64 en una API JSON</b></summary>
 
 ```php
 $result = Pdf::view('facturas.factura', ['factura' => $factura])->render();
@@ -1440,7 +1621,7 @@ return response()->json([
 </details>
 
 <details>
-<summary><b>10 · Mostrarlo inline en el navegador</b></summary>
+<summary><b>10 · 👁️ Mostrarlo inline en el navegador</b></summary>
 
 ```php
 return Pdf::view('facturas.factura', ['factura' => $factura])
@@ -1450,7 +1631,7 @@ return Pdf::view('facturas.factura', ['factura' => $factura])
 </details>
 
 <details>
-<summary><b>11 · Renderizar con un motor puntual</b></summary>
+<summary><b>11 · 🎛️ Renderizar con un motor puntual</b></summary>
 
 ```php
 $bytes = Pdf::view('facturas.factura')
@@ -1461,7 +1642,7 @@ $bytes = Pdf::view('facturas.factura')
 </details>
 
 <details>
-<summary><b>12 · Una marca de agua global para todos los documentos</b></summary>
+<summary><b>12 · 💧 Una marca de agua global para todos los documentos</b></summary>
 
 ```php
 // app/Pdf/Processors/WatermarkProcessor.php
@@ -1483,7 +1664,7 @@ final class WatermarkProcessor implements Processor
 </details>
 
 <details>
-<summary><b>13 · Fallar la petición cuando el motor se queja</b></summary>
+<summary><b>13 · 🚨 Fallar la petición cuando el motor se queja</b></summary>
 
 ```php
 return Pdf::view('facturas.factura')
@@ -1493,7 +1674,7 @@ return Pdf::view('facturas.factura')
 </details>
 
 <details>
-<summary><b>14 · Un job de cola que renderiza y guarda el fichero</b></summary>
+<summary><b>14 · 📬 Un job de cola que renderiza y guarda el fichero</b></summary>
 
 ```php
 final class RenderInvoicePdf implements ShouldQueue
@@ -1561,7 +1742,7 @@ Capability::METADATA        // 'metadata'
 
 ## 13. Errores, warnings y timeouts
 
-### 13.1 El mapa de excepciones
+### 13.1 🗺️ El mapa de excepciones
 
 ```
 PdfGenerationException                    ← clase base de todos los fallos del paquete
@@ -1584,7 +1765,7 @@ PdfGenerationException                    ← clase base de todos los fallos del
 | `InvalidConfigurationException::unsupportedPaperSize()` | Tamaño de papel desconocido. | Usa uno de los 8 tamaños soportados. |
 | `RenderingTimeoutException::exceeded()` | El render tardó más que el timeout. | Sube `->timeout()` o simplifica el documento. |
 
-### 13.2 Los warnings nunca se silencian
+### 13.2 ⚠️ Los warnings nunca se silencian
 
 La salida `E_WARNING`/`E_NOTICE` del motor se captura durante el render, se registra y se adjunta al
 resultado:
@@ -1603,7 +1784,7 @@ Pdf::view('facturas.factura')->strictWarnings()->download();
 'defaults' => ['fail_on_warnings' => true],
 ```
 
-### 13.3 Timeouts
+### 13.3 ⏱️ Timeouts
 
 ```php
 Pdf::view('informe-enorme')->timeout(120)->download();
@@ -1613,7 +1794,7 @@ El límite se aplica en dos sitios: una interrupción dura durante el render (`p
 está disponible) y una comprobación posterior, de modo que un pipeline lento no se cuela. Al
 superar el límite obtienes un `RenderingTimeoutException`, nunca un worker colgado.
 
-### 13.4 Logging
+### 13.4 📝 Logging
 
 Cada render registra un evento `info` y un evento `warning` por cada warning:
 
@@ -1636,7 +1817,7 @@ tu app por culpa del logging.
 
 ## 14. Tests de tu aplicación
 
-### 14.1 El driver Fake
+### 14.1 🧪 El driver Fake
 
 ```php
 use Vellum\Facades\Pdf;
@@ -1652,7 +1833,7 @@ public function test_the_invoice_is_a_pdf(): void
 }
 ```
 
-### 14.2 Comprobar *cómo* se construyó el documento
+### 14.2 🔍 Comprobar *cómo* se construyó el documento
 
 ```php
 public function test_the_invoice_uses_a4_portrait(): void
@@ -1670,7 +1851,7 @@ public function test_the_invoice_uses_a4_portrait(): void
 }
 ```
 
-### 14.3 Testear toda la cadena sin ningún motor
+### 14.3 🔗 Testear toda la cadena sin ningún motor
 
 Como la capa de post-procesado trabaja sobre bytes, el driver fake también soporta PDF/A, adjuntos,
 merge y firmas — tus tests nunca necesitan Chromium:
@@ -1684,10 +1865,10 @@ public function test_the_invoice_is_pdfa(): void
 }
 ```
 
-### 14.4 La suite del propio paquete
+### 14.4 ✅ La suite del propio paquete
 
 ```bash
-composer test          # 114 tests / 219 assertions
+composer test          # 124 tests / 240 assertions
 composer analyse       # PHPStan, nivel max
 composer lint          # Pint
 composer check         # las tres
@@ -1794,12 +1975,14 @@ composer check         # lint:check + analyse + test
 
 La matriz de CI (`.github/workflows/ci.yml`):
 
-| PHP | Laravel 10 | Laravel 11 | Laravel 12 |
-| --- | :---: | :---: | :---: |
-| 8.2 | ✅ | ✅ | ✅ |
-| 8.3 | ✅ | ✅ | ✅ |
-| 8.4 | ✅ | ✅ | ✅ |
-| 8.5 | ✅ | ✅ | ✅ |
+| PHP | Laravel 10 | Laravel 11 | Laravel 12 | Laravel 13 |
+| --- | :---: | :---: | :---: | :---: |
+| 8.2 | ✅ | ✅ | ✅ | ✅ |
+| 8.3 | ✅ | ✅ | ✅ | ✅ |
+| 8.4 | — | ✅ | ✅ | ✅ |
+| 8.5 | — | — | — | ✅ |
+
+`—` = combinación excluida porque esa versión de Laravel no soporta esa versión de PHP.
 
 Cada job ejecuta `pint --test`, `phpstan analyse` (nivel max) y `phpunit`, más un job dedicado a
 las versiones mínimas de dependencias soportadas.

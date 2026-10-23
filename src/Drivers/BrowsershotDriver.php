@@ -69,6 +69,8 @@ final class BrowsershotDriver implements Driver
             $html = PageHtml::injectFont($html, (string) $config->font, $config->fontFile);
         }
 
+        $html = PageHtml::applyPaperSize($html, $config->paper, $config->orientation);
+
         $browsershot = new Browsershot;
 
         $this->configureBinary($browsershot, $config, 'node_binary', 'BROWSERSHOT_NODE_PATH', 'setNodeBinary');
@@ -80,7 +82,7 @@ final class BrowsershotDriver implements Driver
         // of letting it hang forever.
         $browsershot->timeout($config->timeout);
 
-        $browsershot->html($html);
+        $browsershot->setHtml($html);
 
         $browsershot->setOption('format', $config->paper->label());
         $browsershot->setOption('landscape', $config->orientation->isLandscape());
@@ -112,11 +114,13 @@ final class BrowsershotDriver implements Driver
             }
         }
 
-        $target = tempnam(sys_get_temp_dir(), 'vellum-browser-');
-
-        if ($target === false) {
-            throw new PdfGenerationException('Unable to create a temporary file for the Browsershot render.');
-        }
+        // Browsershot decides how to write the file from its extension, so the
+        // temporary target has to be a .pdf file.
+        $target = sprintf(
+            '%s/vellum-browser-%s.pdf',
+            sys_get_temp_dir(),
+            bin2hex(random_bytes(8)),
+        );
 
         try {
             $browsershot->save($target);
